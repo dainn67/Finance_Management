@@ -32,11 +32,7 @@ class _HomePageViewState extends State<HomePageView> {
 
     return Scaffold(
       backgroundColor: Colors.blue,
-      drawer: NavBarView(
-          functionCaller: () {
-            setState(() {});
-          }
-          ),
+      drawer: const NavBarView(),
       appBar: AppBar(
         actions: <Widget>[
           IconButton(
@@ -190,9 +186,7 @@ class _HomePageViewState extends State<HomePageView> {
       ),
       context: context,
       builder: (BuildContext bc) {
-        return addNewRecordView(functionCaller: () {
-          setState(() {});
-        });
+        return addNewRecordView();
       });
 
   void filterOption() => showDialog(

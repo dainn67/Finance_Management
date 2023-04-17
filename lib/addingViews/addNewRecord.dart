@@ -10,12 +10,8 @@ import 'dart:io';
 
 import '../data.dart';
 
-typedef void FunctionCaller();
-
 class addNewRecordView extends StatefulWidget {
-  final FunctionCaller functionCaller;
-
-  addNewRecordView({required this.functionCaller});
+  const addNewRecordView({super.key});
 
   @override
   _addNewRecordViewState createState() => _addNewRecordViewState();
@@ -410,7 +406,6 @@ class _addNewRecordViewState extends State<addNewRecordView> {
                   onPressed: () {
                     Navigator.of(context).pop();
                     isLoading = true;
-                    widget.functionCaller();
                     submit_done().then((_) {
                       isLoading = false;
                     });

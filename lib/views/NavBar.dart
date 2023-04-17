@@ -7,13 +7,8 @@ import '../data.dart';
 import 'AboutUs.dart';
 import 'UserGuide.dart';
 
-typedef void FunctionCaller();
-
 class NavBarView extends StatefulWidget {
-  // const NavBar({Key? key}) : super(key: key);
-  final FunctionCaller functionCaller;
-
-  NavBarView({required this.functionCaller});
+  const NavBarView({Key? key}) : super(key: key);
 
   @override
   State<NavBarView> createState() => _NavBarViewState();
