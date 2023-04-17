@@ -232,7 +232,6 @@ class CounterStorage {
       return [];
     }
   }
-
 }
 
 class MyApp extends StatefulWidget {
@@ -276,8 +275,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => Record_Provider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => Record_Provider()),
+        ChangeNotifierProvider(create: (context) => State_Provider()),
+      ],
       child: const MaterialApp(
           debugShowCheckedModeBanner: false,
           home:

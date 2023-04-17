@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 int cId = 0;
-List<String> categories = ["Chung", "Thống kê", "Tiền nhà", "Tổng kết"];
+List<String> categories = ["General", "Statistic", "Housing", "Summary"];
 
 //records
 // List records = [];
@@ -98,31 +98,8 @@ class Record_Provider with ChangeNotifier{
 
   int getSize() => records.length;
 
-  void addRecord(){
-    var debugTmp = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
-    var url = Uri.parse(
-        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-    http
-        .post(url,
-        body: json.encode({
-          'name': debugTmp.name,
-          'money': debugTmp.money,
-          'date': debugTmp.date,
-          'by': debugTmp.by,
-          'type': debugTmp.type,
-          'people': debugTmp.people,
-        }))
-        .then((res) {
-      // records.add(debugTemp);
-
-      print('Id response from Firebase${json.decode(res.body)}');
-      // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
-      // a record, we need to use that id to identify
-
-    });
-
-    _records.add(debugTmp);
-
+  void addRecord(Record newRecord){
+    _records.add(newRecord);
     notifyListeners();
   }
 
@@ -131,5 +108,13 @@ class Record_Provider with ChangeNotifier{
   }
 }
 
+class State_Provider with ChangeNotifier{
+  bool isLoading = false;
 
-bool isLoading = false;
+  bool getLoadingState() => isLoading;
+
+  void changeLoading() {
+    isLoading = !isLoading;
+    notifyListeners();
+  }
+}

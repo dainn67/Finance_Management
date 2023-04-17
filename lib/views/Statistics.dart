@@ -23,6 +23,9 @@ class _StatisticViewState extends State<StatisticView> {
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
 
+    final state = Provider.of<State_Provider>(context);
+    final isLoading = state.getLoadingState();
+
     switch(isLoading){
       case true: return const Center(child: CircularProgressIndicator());
       default:  return (!isLoading && records.isNotEmpty)

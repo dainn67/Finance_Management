@@ -24,9 +24,6 @@ class _addNewRecordViewState extends State<addNewRecordView> {
 
   final _priceFocusNode = FocusNode();
   final _descFocusNode = FocusNode();
-  final _imgFocusNode = FocusNode();
-
-  // bool isLoading = false;
 
   var data = {'name': '', 'title': '', 'desc': '', 'imgURL': ''};
 
@@ -44,14 +41,6 @@ class _addNewRecordViewState extends State<addNewRecordView> {
     super.initState();
     cname = TextEditingController();
     cmoney = TextEditingController();
-
-    _imgFocusNode.addListener(_updateImgURL);
-  }
-
-  void _updateImgURL() {
-    if (!_imgFocusNode.hasFocus) {
-      setState(() {});
-    }
   }
 
   @override
@@ -60,8 +49,6 @@ class _addNewRecordViewState extends State<addNewRecordView> {
     cmoney.dispose();
     _priceFocusNode.dispose();
     _descFocusNode.dispose();
-    _imgFocusNode.removeListener(_updateImgURL);
-    _imgFocusNode.dispose();
     super.dispose();
   }
 
@@ -173,12 +160,21 @@ class _addNewRecordViewState extends State<addNewRecordView> {
   // }
 
   Widget build(BuildContext context) {
+    final state = Provider.of<State_Provider>(context, listen: false);
+
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           shrinkWrap: true,
           children: [
-            const SizedBox(height: 50.0),
+            const Center(
+              child: Text("New record",
+                  style: TextStyle(
+                      color: Colors.blueAccent,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 10),
             Container(
               padding:
                   const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
@@ -188,51 +184,11 @@ class _addNewRecordViewState extends State<addNewRecordView> {
               ),
               child: Column(
                 children: [
-                  CupertinoSlidingSegmentedControl(
-                    groupValue: type,
-                    children: {
-                      1: Builder(
-                        builder: (context) => SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          child: const Center(
-                            child: Text(
-                              'Đồ ăn',
-                              style: TextStyle(color: Colors.purple),
-                            ),
-                          ),
-                        ),
-                      ),
-                      2: Builder(
-                        builder: (context) => SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          child: const Center(
-                            child: Text(
-                              'Đồ gia dụng',
-                              style: TextStyle(color: Colors.purple),
-                            ),
-                          ),
-                        ),
-                      )
-                    },
-                    onValueChanged: (value) {
-                      setState(() {
-                        type = value!;
-                        if (value == 2) {
-                          setState(() {
-                            for (int i = 0; i < 5; i++) people[i] = true;
-                          });
-                        } else {
-                          setState(() {
-                            for (int i = 0; i < 5; i++) people[i] = false;
-                          });
-                        }
-                      });
-                    },
-                  ),
+                  typeSelection(),
                   const SizedBox(height: 15),
                   TextField(
                     decoration: InputDecoration(
-                      labelText: 'Tên chi tiêu',
+                      labelText: 'Record\'s name',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -245,7 +201,7 @@ class _addNewRecordViewState extends State<addNewRecordView> {
                   const SizedBox(height: 20),
                   TextField(
                     decoration: InputDecoration(
-                      labelText: 'Số tiền (VND)',
+                      labelText: 'Amount (vnd)',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -264,105 +220,20 @@ class _addNewRecordViewState extends State<addNewRecordView> {
                         print(
                             "CMONEY TEXT:${cmoney.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
                       }
-                      // cmoney.text = int.parse(string.text.toString());
                     },
                   ),
                   const SizedBox(height: 15),
-                  const Text("Người thanh toán",
+                  const Text("Purchaser",
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                   const SizedBox(height: 10),
-                  CupertinoSlidingSegmentedControl(
-                    groupValue: buyer,
-                    children: {
-                      1: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        child: const Center(
-                          child: Text('Phong'),
-                        ),
-                      ),
-                      2: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        child: const Center(
-                          child: Text('Khánh'),
-                        ),
-                      ),
-                      3: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        child: const Center(
-                          child: Text('Tùng'),
-                        ),
-                      ),
-                      4: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        child: const Center(
-                          child: Text('Lâm'),
-                        ),
-                      ),
-                      5: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        child: const Center(
-                          child: Text('Hiển'),
-                        ),
-                      ),
-                    },
-                    onValueChanged: (value) {
-                      setState(() {
-                        buyer = value!;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 10),
+                  payerSelection(),
+                  const SizedBox(height: 20),
                   const Center(
-                      child: Text("Người ăn",
+                      child: Text("User(s)",
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 20))),
-                  CheckboxListTile(
-                    title: const Text('Phong'),
-                    value: people[0],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        people[0] = value!;
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Khánh'),
-                    value: people[1],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        people[1] = value!;
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Tùng'),
-                    value: people[2],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        people[2] = value!;
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Lâm'),
-                    value: people[3],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        people[3] = value!;
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Hiển'),
-                    value: people[4],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        people[4] = value!;
-                      });
-                    },
-                  ),
-                  //
+                  selectUsers(),
                 ],
               ),
             ),
@@ -378,7 +249,7 @@ class _addNewRecordViewState extends State<addNewRecordView> {
                     const Icon(Icons.calendar_today),
                     const SizedBox(width: 8),
                     Text(
-                        "Ngày: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                        "Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
                         style: const TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(width: 16.0),
@@ -390,10 +261,10 @@ class _addNewRecordViewState extends State<addNewRecordView> {
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2025),
                           ) as DateTime;
-                          setState(() {});
+                          // setState(() {});
                         },
                         child: const Text(
-                          "Thay đổi",
+                          "Change",
                           style: TextStyle(fontSize: 18.0),
                         )),
                   ],
@@ -404,105 +275,217 @@ class _addNewRecordViewState extends State<addNewRecordView> {
             Center(
               child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    isLoading = true;
+                    state.changeLoading();
                     submit_done().then((_) {
-                      isLoading = false;
+                      state.changeLoading();
+                    }).catchError((err) {
+                      // Navigator.of(context).pop();
+                      print("ERROR HERE 2: $err");
                     });
                   },
-                  child: const Text("Thêm")),
+                  child: const Text("Add")),
             ),
           ],
         ));
   }
 
-  Future<void> submit_done() async {
-    Provider.of<Record_Provider>(context, listen: false).addRecord();
-    // setState(() {
-    //   // int money = int.parse(cmoney.text
-    //   //     .replaceAll(RegExp(r'\.\d+'), '')
-    //   //     .replaceAll(',', '')
-    //   //     .toString());
-    //   // String _people = "";
-    //   // for (int i = 0; i < people.length; i++) {
-    //   //   if (people[i]) {
-    //   //     _people = _people + "1";
-    //   //   } else {
-    //   //     _people = _people + '0';
-    //   //   }
-    //   // }
-    //   //
-    //   // var temp = {
-    //   //   "name": cname.text.toString(),
-    //   //   "money": money,
-    //   //   "date":
-    //   //       "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
-    //   //   "by": buyer,
-    //   //   "type": type,
-    //   //   "people": _people
-    //   // };
-    //
-    //   var debugTemp = {
-    //     "name": "Random name",
-    //     "money": 100000,
-    //     "date": "1/1/1111",
-    //     "by": 2,
-    //     "type": 2,
-    //     "people": "11111"
-    //   };
-    //
-    //   var _record = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
-    //
-    //   // records.add(temp);
-    //
-    //   //SEND HTTP REQUEST
-    //   var url = Uri.parse(
-    //       'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-    //   http
-    //       .post(url,
-    //           body: json.encode({
-    //             'name': _record.name,
-    //             'money': _record.money,
-    //             'date': _record.date,
-    //             'by': _record.by,
-    //             'type': _record.type,
-    //             'people': _record.people,
-    //           }))
-    //       .then((res) {
-    //     records.add(debugTemp);
-    //
-    //     print(json.decode(res.body));
-    //     // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
-    //     // a record, we need to use that id to identify
-    //
-    //     if (type == 2) {
-    //       // totalStationery += money;
-    //       totalStationery += 100000;
-    //     } else {
-    //       // totalFood += money;
-    //       totalFood += 100000;
-    //     }
-    //
-    //     // computeExpenses(money, int.parse(getNumberOfPeople(_people)), _people, buyer, _selectedDate.month, _selectedDate.year);
-    //     computeExpenses(100000, 5, "11111", 2, 4, 2023);
-    //
-    //     widget.functionCaller();
-    //
-    //     jsonRecord = "";
-    //     for (int i = 0; i < records.length; i++) {
-    //       if (i == 0) {
-    //         jsonRecord = "[${jsonEncode(records[i])}";
-    //       } else {
-    //         jsonRecord = "$jsonRecord, ${jsonEncode(records[i])}";
-    //       }
-    //     }
-    //     jsonRecord += ']';
-    //     writeData();
-    //   });
-    // });
+  CupertinoSlidingSegmentedControl typeSelection() {
+    return CupertinoSlidingSegmentedControl(
+      groupValue: type,
+      children: {
+        1: Builder(
+          builder: (context) => SizedBox(
+            width: MediaQuery.of(context).size.width * 0.4,
+            child: const Center(
+              child: Text(
+                'Food & Drinks',
+                style: TextStyle(color: Colors.purple),
+              ),
+            ),
+          ),
+        ),
+        2: Builder(
+          builder: (context) => SizedBox(
+            width: MediaQuery.of(context).size.width * 0.4,
+            child: const Center(
+              child: Text(
+                'Stationery',
+                style: TextStyle(color: Colors.purple),
+              ),
+            ),
+          ),
+        )
+      },
+      onValueChanged: (value) {
+        setState(() {
+          type = value!;
+          if (value == 2) {
+            setState(() {
+              for (int i = 0; i < 5; i++) people[i] = true;
+            });
+          } else {
+            setState(() {
+              for (int i = 0; i < 5; i++) people[i] = false;
+            });
+          }
+        });
+      },
+    );
+  }
 
-    cname.clear();
-    cmoney.clear();
+  CupertinoSlidingSegmentedControl payerSelection() {
+    return CupertinoSlidingSegmentedControl(
+      groupValue: buyer,
+      children: {
+        1: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.3,
+          child: const Center(
+            child: Text('Phong'),
+          ),
+        ),
+        2: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.3,
+          child: const Center(
+            child: Text('Khánh'),
+          ),
+        ),
+        3: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.3,
+          child: const Center(
+            child: Text('Tùng'),
+          ),
+        ),
+        4: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.3,
+          child: const Center(
+            child: Text('Lâm'),
+          ),
+        ),
+        5: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.3,
+          child: const Center(
+            child: Text('Hiển'),
+          ),
+        ),
+      },
+      onValueChanged: (value) {
+        setState(() {
+          buyer = value!;
+        });
+      },
+    );
+  }
+
+  Column selectUsers() {
+    return Column(
+      children: [
+        CheckboxListTile(
+          title: const Text('Phong'),
+          value: people[0],
+          onChanged: (bool? value) {
+            setState(() {
+              people[0] = value!;
+            });
+          },
+        ),
+        CheckboxListTile(
+          title: const Text('Khánh'),
+          value: people[1],
+          onChanged: (bool? value) {
+            setState(() {
+              people[1] = value!;
+            });
+          },
+        ),
+        CheckboxListTile(
+          title: const Text('Tùng'),
+          value: people[2],
+          onChanged: (bool? value) {
+            setState(() {
+              people[2] = value!;
+            });
+          },
+        ),
+        CheckboxListTile(
+          title: const Text('Lâm'),
+          value: people[3],
+          onChanged: (bool? value) {
+            setState(() {
+              people[3] = value!;
+            });
+          },
+        ),
+        CheckboxListTile(
+          title: const Text('Hiển'),
+          value: people[4],
+          onChanged: (bool? value) {
+            setState(() {
+              people[4] = value!;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> submit_done() async {
+    try{
+      final data = Provider.of<Record_Provider>(context, listen: false);
+      int money = int.parse(cmoney.text
+          .replaceAll(RegExp(r'\.\d+'), '')
+          .replaceAll(',', '')
+          .toString());
+
+      String _people = "";
+      for (int i = 0; i < people.length; i++) {
+        if (people[i]) {
+          _people = _people + "1";
+        } else {
+          _people = _people + '0';
+        }
+      }
+
+      if (type == 2)
+        totalStationery += money;
+      else
+        totalFood += money;
+      computeExpenses(money, int.parse(getNumberOfPeople(_people)), _people,
+          buyer, _selectedDate.month, _selectedDate.year);
+
+      var record = Record(
+          cname.text.toString(),
+          money,
+          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+          buyer,
+          type,
+          _people);
+
+      //SEND HTTP REQUEST
+      var uri = Uri.parse(
+          'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+      final res = await http.post(uri,
+          body: json.encode({
+            'name': record.name,
+            'money': record.money,
+            'date': record.date,
+            'by': record.by,
+            'type': record.type,
+            'people': record.people,
+          }));
+      data.addRecord(record);
+      print('Result from Firebase: ${json.decode(res.body)}');
+      //   // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
+      //   // a record, we need to use that id to identify
+
+      cname.clear();
+      cmoney.clear();
+      // Navigator.of(context).pop();
+    } catch (err){
+      print(err);
+      rethrow;
+    } finally {
+      Navigator.of(context).pop();
+    }
   }
 
   void computeExpenses(int money, int numberOfPeople, String people, int buyer,
@@ -591,7 +574,7 @@ class _addNewRecordViewState extends State<addNewRecordView> {
                 getEqualMoney(money, numberOfPeople);
       }
     }
-    print("AFTER: $moneyToPayy");
+    // print("AFTER: $moneyToPayy");
   }
 
   int getEqualMoney(int money, int numberOfPeople) {
@@ -616,44 +599,5 @@ class _addNewRecordViewState extends State<addNewRecordView> {
       if (s[i] == '1') count++;
     }
     return "$count";
-  }
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localRecords async {
-    final path = await _localPath;
-    return File('$path/records.txt');
-  }
-
-  Future<File> get _localTotalStationery async {
-    final path = await _localPath;
-    return File('$path/stationery.txt');
-  }
-
-  Future<File> get _localTotalFood async {
-    final path = await _localPath;
-    return File('$path/food.txt');
-  }
-
-  Future<File> get _localTotalSummary async {
-    final path = await _localPath;
-    return File('$path/summary.txt');
-  }
-
-  Future<void> writeData() async {
-    final fileRecords = await _localRecords;
-    fileRecords.writeAsStringSync(jsonRecord.toString());
-
-    final fileStation = await _localTotalStationery;
-    fileStation.writeAsString('$totalStationery');
-
-    final fileFood = await _localTotalFood;
-    fileFood.writeAsString('$totalFood');
-
-    final fileSummary = await _localTotalSummary;
-    fileSummary.writeAsString(jsonEncode(moneyToPayy));
   }
 }

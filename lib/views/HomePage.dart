@@ -15,7 +15,6 @@ import 'package:http/http.dart' as http;
 class HomePageView extends StatefulWidget {
   const HomePageView({Key? key}) : super(key: key);
 
-
   @override
   State<HomePageView> createState() => _HomePageViewState();
 }
@@ -30,6 +29,9 @@ class _HomePageViewState extends State<HomePageView> {
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
 
+    final state = Provider.of<State_Provider>(context);
+    bool isLoading = state.getLoadingState();
+
     return Scaffold(
       backgroundColor: Colors.blue,
       drawer: const NavBarView(),
@@ -38,42 +40,30 @@ class _HomePageViewState extends State<HomePageView> {
           IconButton(
             icon: const Icon(Icons.bug_report_outlined),
             onPressed: () {
-              setState(() {
-                isLoading = true;
-              });
-              var debugTemp = {
-                "name": "Random name",
-                "money": 100000,
-                "date": "1/1/1111",
-                "by": 2,
-                "type": 2,
-                "people": "11111"
-              };
+              state.changeLoading();
 
-              var _record = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
+              var record = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
 
               //SEND HTTP REQUEST
               var url = Uri.parse(
                   'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
               http
                   .post(url,
-                  body: json.encode({
-                    'name': _record.name,
-                    'money': _record.money,
-                    'date': _record.date,
-                    'by': _record.by,
-                    'type': _record.type,
-                    'people': _record.people,
-                  }))
+                      body: json.encode({
+                        'name': record.name,
+                        'money': record.money,
+                        'date': record.date,
+                        'by': record.by,
+                        'type': record.type,
+                        'people': record.people,
+                      }))
                   .then((res) {
-                setState(() {
-                  isLoading = false;
-                  // records.add(debugTemp);
-                });
+                state.changeLoading();
+                recordData.addRecord(record);
                 print(json.decode(res.body));
                 // json.decode(res.body) is recommended to be used as id of record, so that when user need to delete
                 // a record, we need to use that id to identify
-            });
+              });
             } /*ngoặc nhọn của onpressed*/,
           ),
         ],
@@ -144,7 +134,6 @@ class _HomePageViewState extends State<HomePageView> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           addNewRecord();
-
         },
         // tooltip: 'Increment',
         backgroundColor: Colors.blue,
