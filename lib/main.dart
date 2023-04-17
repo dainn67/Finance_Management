@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:phongs_app/data.dart';
 import 'package:phongs_app/views/HomePage.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'dart:async';
-
-import '../data.dart';
 
 void main() {
   runApp(MyApp(storage: CounterStorage()));
@@ -250,40 +248,43 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    widget.storage.readDataRecord().then((value) {
-      setState(() {
-        jsonRecord = value;
-        records = jsonDecode(jsonRecord);
-      });
-    });
-    widget.storage.readDataStationery().then((value) {
-      setState(() {
-        totalStationery = value;
-      });
-    });
-    widget.storage.readDataFood().then((value) {
-      setState(() {
-        totalFood = value;
-      });
-    });
-    widget.storage.readDataMoney();
-    widget.storage.readDataSaved();
-    widget.storage.readDataMotors();
-    widget.storage.readDataHouse();
-    widget.storage.readDataElectric();
-    widget.storage.readDataWater();
-    widget.storage.readDataMotorFee();
-    widget.storage.readDataCheck();
+    // widget.storage.readDataRecord().then((value) {
+    //   setState(() {
+    //     jsonRecord = value;
+    //     records = jsonDecode(jsonRecord);
+    //   });
+    // });
+    // widget.storage.readDataStationery().then((value) {
+    //   setState(() {
+    //     totalStationery = value;
+    //   });
+    // });
+    // widget.storage.readDataFood().then((value) {
+    //   setState(() {
+    //     totalFood = value;
+    //   });
+    // });
+    // widget.storage.readDataMoney();
+    // widget.storage.readDataSaved();
+    // widget.storage.readDataMotors();
+    // widget.storage.readDataHouse();
+    // widget.storage.readDataElectric();
+    // widget.storage.readDataWater();
+    // widget.storage.readDataMotorFee();
+    // widget.storage.readDataCheck();
   }
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home:
-            // LoginPage()
-            HomePageView()
-        // PlannedPayment()
-        );
+    return ChangeNotifierProvider(
+      create: (context) => Record_Provider(),
+      child: const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home:
+              // LoginPage()
+              HomePageView()
+          // PlannedPayment()
+          ),
+    );
   }
 }

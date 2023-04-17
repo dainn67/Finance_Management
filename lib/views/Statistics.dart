@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../data.dart';
 import 'DashBoard.dart';
 import 'dart:io';
@@ -20,6 +20,9 @@ class _StatisticViewState extends State<StatisticView> {
 
   @override
   Widget build(BuildContext context) {
+    final recordData = Provider.of<Record_Provider>(context);
+    final records = recordData.records;
+
     switch(isLoading){
       case true: return const Center(child: CircularProgressIndicator());
       default:  return (!isLoading && records.isNotEmpty)
@@ -27,11 +30,12 @@ class _StatisticViewState extends State<StatisticView> {
               itemCount: records.length,
               itemBuilder: (context, id) {
                 return Dismissible(
-                  key: Key(records[records.length - id - 1].toString()),
+                  key: UniqueKey(),
                   direction: DismissDirection.endToStart,
                   onDismissed: (direction) {
                     setState(() {
-                      records.removeAt(records.length - id - 1);
+                      recordData.removeRecord(records.length - id - 1);
+                      delete(records, records.length - id - 1);
                     });
                   },
                   background: Container(
@@ -50,43 +54,43 @@ class _StatisticViewState extends State<StatisticView> {
                               actions: <Widget>[
                                 TextButton(
                                     onPressed: () {
-                                      Navigator.of(context).pop(true);     //return true so that confirmDismiss delete the record
-                                    }, child: Text("Yes")),
-                                TextButton(
-                                    onPressed: () {
                                       Navigator.of(context).pop(false);     //return false so that confirmDismiss don't delete the record
                                     },
-                                    child: Text("No"))
+                                    child: const Text("Cancel")),
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(true);     //return true so that confirmDismiss delete the record
+                                    }, child: const Text("Delete", style: TextStyle(color: Colors.red),))
                               ],
                             ));
                   },
                   child: ListTile(
                     onTap: () {
-                      detailAndEdit(records.length - id - 1);
+                      detailAndEdit(records, records.length - id - 1);
                     },
                     onLongPress: () {
-                      delete(records.length - id - 1);
+                      print('length: ${records.length}\nid = $id\nrecord[${records.length - id - 1}]');
                     },
-                    leading: buildLeading(records[records.length - id - 1]["by"]),
-                    subtitle: Text(records[records.length - id - 1]["date"]),
+                    leading: buildLeading(records[records.length - id - 1].by),
+                    subtitle: Text(records[records.length - id - 1].date),
                     title: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          records[records.length - id - 1]["name"],
+                          records[records.length - id - 1].name,
                           style: const TextStyle(
                               fontSize: 20.0, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 5.0),
                         Text(
-                            "-${currencyFormat.format(records[records.length - id - 1]["money"])}",
+                            "-${currencyFormat.format(records[records.length - id - 1].money)}",
                             style: const TextStyle(
                                 fontSize: 16.0, color: Colors.purple)),
                       ],
                     ),
                     trailing: (() {
-                      switch (records[records.length - id - 1]["type"]) {
+                      switch (records[records.length - id - 1].type) {
                         case 2:
                           return const Icon(Icons.home_work_outlined);
                         case 1:
@@ -109,7 +113,7 @@ class _StatisticViewState extends State<StatisticView> {
     }
   }
 
-  void detailAndEdit(int id) => showDialog(
+  void detailAndEdit(List<Record> records, int id) => showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -125,7 +129,7 @@ class _StatisticViewState extends State<StatisticView> {
                         style: GoogleFonts.firaSans(
                           fontSize: 22,
                         )),
-                    trailing: Text(records[id]["name"],
+                    trailing: Text(records[id].name,
                         style: GoogleFonts.firaSans(
                           fontSize: 22,
                         )),
@@ -133,25 +137,25 @@ class _StatisticViewState extends State<StatisticView> {
                   ListTile(
                     title: Text("Số tiền",
                         style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(currencyFormat.format(records[id]["money"]),
+                    trailing: Text(currencyFormat.format(records[id].money),
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   ),
                   ListTile(
                     title: Text("Người mua",
                         style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(getBuyer(records[id]["by"]),
+                    trailing: Text(getBuyer(records[id].by),
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   ),
                   ListTile(
                     title: Text("Người dùng",
                         style: GoogleFonts.firaSans(fontSize: 22)),
-                    subtitle: Text(getPeople(records[id]["people"])),
-                    trailing: Text(getNumberOfPeople(records[id]["people"])),
+                    subtitle: Text(getPeople(records[id].people)),
+                    trailing: Text(getNumberOfPeople(records[id].people)),
                   ),
                   ListTile(
                     title: Text("Ngày mua",
                         style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(records[id]["date"],
+                    trailing: Text(records[id].date,
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   ),
                   ListTile(
@@ -159,7 +163,7 @@ class _StatisticViewState extends State<StatisticView> {
                         style: GoogleFonts.firaSans(fontSize: 22)),
                     trailing: Text(
                         currencyFormat.format(getEqualMoney(
-                            records[id]["money"], records[id]["people"])),
+                            records[id].money, records[id].people)),
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   )
                 ],
@@ -169,63 +173,17 @@ class _StatisticViewState extends State<StatisticView> {
         },
       );
 
-  void delete(int id) => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Xoá chi tiêu'),
-            content: const Text('Bạn có chắc muốn xoá chi tiêu này ?'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Huỷ'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Đồng ý'),
-                onPressed: () async {
-                  setState(() {
-                    refund(
-                        records[id]["money"],
-                        records[id]["by"],
-                        records[id]["people"],
-                        records[id]["date"],
-                        records[id]["type"]);
-                    records.remove(records[id]);
-
-                    jsonRecord = "";
-                    for (int i = 0; i < records.length; i++) {
-                      if (i == 0) {
-                        jsonRecord = "[${jsonEncode(records[i])}";
-                      } else {
-                        jsonRecord = "$jsonRecord, ${jsonEncode(records[i])}";
-                      }
-                    }
-                    if (records.isNotEmpty)
-                      jsonRecord += ']';
-                    else
-                      jsonRecord += '[]';
-                  });
-                  final fileTotalFood = await _localTotalFood;
-                  fileTotalFood.writeAsString(jsonEncode(totalFood));
-
-                  final fileTotalStationery = await _localTotalStationery;
-                  fileTotalStationery
-                      .writeAsString(jsonEncode(totalStationery));
-
-                  final fileRecords = await _localRecords;
-                  fileRecords.writeAsStringSync(jsonRecord.toString());
-
-                  final tmp = fileRecords.readAsStringSync();
-                  print("RECORDS: $tmp");
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+  void delete(List<Record> records, int id) {
+    print('Delete at id: $id');
+    setState(() {
+      // refund(
+      //     records[id].money,
+      //     records[id].by,
+      //     records[id].people,
+      //     records[id].date,
+      //     records[id].type);
+    });
+  }
 
   String getBuyer(int i) {
     switch (i) {
@@ -348,15 +306,5 @@ class _StatisticViewState extends State<StatisticView> {
   Future<File> get _localTotalSummary async {
     final path = await _localPath;
     return File('$path/summary.txt');
-  }
-
-  Future<File> get _localTotalStationery async {
-    final path = await _localPath;
-    return File('$path/stationery.txt');
-  }
-
-  Future<File> get _localTotalFood async {
-    final path = await _localPath;
-    return File('$path/food.txt');
   }
 }

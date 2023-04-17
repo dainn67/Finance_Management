@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -421,88 +422,89 @@ class _addNewRecordViewState extends State<addNewRecordView> {
   }
 
   Future<void> submit_done() async {
-    setState(() {
-      // int money = int.parse(cmoney.text
-      //     .replaceAll(RegExp(r'\.\d+'), '')
-      //     .replaceAll(',', '')
-      //     .toString());
-      // String _people = "";
-      // for (int i = 0; i < people.length; i++) {
-      //   if (people[i]) {
-      //     _people = _people + "1";
-      //   } else {
-      //     _people = _people + '0';
-      //   }
-      // }
-      //
-      // var temp = {
-      //   "name": cname.text.toString(),
-      //   "money": money,
-      //   "date":
-      //       "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
-      //   "by": buyer,
-      //   "type": type,
-      //   "people": _people
-      // };
-
-      var debugTemp = {
-        "name": "Random name",
-        "money": 100000,
-        "date": "1/1/1111",
-        "by": 2,
-        "type": 2,
-        "people": "11111"
-      };
-
-      var _record = record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
-
-      // records.add(temp);
-
-      //SEND HTTP REQUEST
-      var url = Uri.parse(
-          'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-      http
-          .post(url,
-              body: json.encode({
-                'name': _record.name,
-                'money': _record.money,
-                'date': _record.date,
-                'by': _record.by,
-                'type': _record.type,
-                'people': _record.people,
-              }))
-          .then((res) {
-        records.add(debugTemp);
-
-        print(json.decode(res.body));
-        // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
-        // a record, we need to use that id to identify
-
-        if (type == 2) {
-          // totalStationery += money;
-          totalStationery += 100000;
-        } else {
-          // totalFood += money;
-          totalFood += 100000;
-        }
-
-        // computeExpenses(money, int.parse(getNumberOfPeople(_people)), _people, buyer, _selectedDate.month, _selectedDate.year);
-        computeExpenses(100000, 5, "11111", 2, 4, 2023);
-
-        widget.functionCaller();
-
-        jsonRecord = "";
-        for (int i = 0; i < records.length; i++) {
-          if (i == 0) {
-            jsonRecord = "[${jsonEncode(records[i])}";
-          } else {
-            jsonRecord = "$jsonRecord, ${jsonEncode(records[i])}";
-          }
-        }
-        jsonRecord += ']';
-        writeData();
-      });
-    });
+    Provider.of<Record_Provider>(context, listen: false).addRecord();
+    // setState(() {
+    //   // int money = int.parse(cmoney.text
+    //   //     .replaceAll(RegExp(r'\.\d+'), '')
+    //   //     .replaceAll(',', '')
+    //   //     .toString());
+    //   // String _people = "";
+    //   // for (int i = 0; i < people.length; i++) {
+    //   //   if (people[i]) {
+    //   //     _people = _people + "1";
+    //   //   } else {
+    //   //     _people = _people + '0';
+    //   //   }
+    //   // }
+    //   //
+    //   // var temp = {
+    //   //   "name": cname.text.toString(),
+    //   //   "money": money,
+    //   //   "date":
+    //   //       "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+    //   //   "by": buyer,
+    //   //   "type": type,
+    //   //   "people": _people
+    //   // };
+    //
+    //   var debugTemp = {
+    //     "name": "Random name",
+    //     "money": 100000,
+    //     "date": "1/1/1111",
+    //     "by": 2,
+    //     "type": 2,
+    //     "people": "11111"
+    //   };
+    //
+    //   var _record = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
+    //
+    //   // records.add(temp);
+    //
+    //   //SEND HTTP REQUEST
+    //   var url = Uri.parse(
+    //       'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+    //   http
+    //       .post(url,
+    //           body: json.encode({
+    //             'name': _record.name,
+    //             'money': _record.money,
+    //             'date': _record.date,
+    //             'by': _record.by,
+    //             'type': _record.type,
+    //             'people': _record.people,
+    //           }))
+    //       .then((res) {
+    //     records.add(debugTemp);
+    //
+    //     print(json.decode(res.body));
+    //     // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
+    //     // a record, we need to use that id to identify
+    //
+    //     if (type == 2) {
+    //       // totalStationery += money;
+    //       totalStationery += 100000;
+    //     } else {
+    //       // totalFood += money;
+    //       totalFood += 100000;
+    //     }
+    //
+    //     // computeExpenses(money, int.parse(getNumberOfPeople(_people)), _people, buyer, _selectedDate.month, _selectedDate.year);
+    //     computeExpenses(100000, 5, "11111", 2, 4, 2023);
+    //
+    //     widget.functionCaller();
+    //
+    //     jsonRecord = "";
+    //     for (int i = 0; i < records.length; i++) {
+    //       if (i == 0) {
+    //         jsonRecord = "[${jsonEncode(records[i])}";
+    //       } else {
+    //         jsonRecord = "$jsonRecord, ${jsonEncode(records[i])}";
+    //       }
+    //     }
+    //     jsonRecord += ']';
+    //     writeData();
+    //   });
+    // });
 
     cname.clear();
     cmoney.clear();

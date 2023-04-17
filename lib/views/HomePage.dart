@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:phongs_app/views/DashBoard.dart';
@@ -23,8 +23,13 @@ class HomePageView extends StatefulWidget {
 class _HomePageViewState extends State<HomePageView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
+  //listen to change data
+
   @override
   Widget build(BuildContext context) {
+    final recordData = Provider.of<Record_Provider>(context);
+    final records = recordData.records;
+
     return Scaffold(
       backgroundColor: Colors.blue,
       drawer: NavBarView(
@@ -49,7 +54,7 @@ class _HomePageViewState extends State<HomePageView> {
                 "people": "11111"
               };
 
-              var _record = record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
+              var _record = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
 
               //SEND HTTP REQUEST
               var url = Uri.parse(
@@ -67,7 +72,7 @@ class _HomePageViewState extends State<HomePageView> {
                   .then((res) {
                 setState(() {
                   isLoading = false;
-                  records.add(debugTemp);
+                  // records.add(debugTemp);
                 });
                 print(json.decode(res.body));
                 // json.decode(res.body) is recommended to be used as id of record, so that when user need to delete

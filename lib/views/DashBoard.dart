@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../data.dart';
 
@@ -16,6 +17,9 @@ class _DashBoardViewState extends State<DashBoardView> {
 
   @override
   Widget build(BuildContext context) {
+    final recordData = Provider.of<Record_Provider>(context);
+    final records = recordData.records;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
@@ -24,17 +28,7 @@ class _DashBoardViewState extends State<DashBoardView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        drawer: Drawer(
-
-                        ),
-                        appBar: AppBar(
-                          title: const Text("Draft screen"),
-                        ),
-                      )));
-                },
+                onTap: () {},
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.18,
                   width: MediaQuery.of(context).size.width * 0.4,
@@ -69,12 +63,7 @@ class _DashBoardViewState extends State<DashBoardView> {
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  // Navigator.of(context).push(MaterialPageRoute(
-                  //     builder: (context) => ManualSetCash(functionCaller: () {
-                  //       setState(() {});
-                  //     })));
-                },
+                onTap: () {},
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.18,
                   width: MediaQuery.of(context).size.width * 0.4,
@@ -115,32 +104,28 @@ class _DashBoardViewState extends State<DashBoardView> {
             ],
           ),
           records.isNotEmpty
-              ? Container(
-                  child: Center(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Text("Chi tiêu gần đây",
-                            style: GoogleFonts.firaSans(
-                                fontSize: 24, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                )
-              : Container(
-                  child: Center(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Text("Chưa có chi tiêu nào",
-                            style: GoogleFonts.firaSans(
-                                fontSize: 24, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
+              ? Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.05),
+                    Text("Chi tiêu gần đây",
+                        style: GoogleFonts.firaSans(
+                            fontSize: 24, fontWeight: FontWeight.bold)),
+                  ],
                 ),
+              )
+              : Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.05),
+                    Text("Chưa có chi tiêu nào",
+                        style: GoogleFonts.firaSans(
+                            fontSize: 24, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
           records.isNotEmpty
               ? Expanded(
                   child: Container(
@@ -150,19 +135,18 @@ class _DashBoardViewState extends State<DashBoardView> {
                         itemCount: records.length <= 5 ? records.length : 5,
                         itemBuilder: (context, id) {
                           return ListTile(
-                            leading: buildLeading(records[records.length - id - 1]["by"]),
+                            leading: buildLeading(records[records.length - id - 1].by),
                             shape: const RoundedRectangleBorder(
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(10.0))),
-                            subtitle: Text(records[records.length - id - 1]
-                                    ["date"]
+                            subtitle: Text(records[records.length - id - 1].date
                                 .toString()),
                             title: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  records[records.length - id - 1]["name"]
+                                  records[records.length - id - 1].name
                                       .toString(),
                                   style: const TextStyle(
                                       fontSize: 20.0,
@@ -170,15 +154,14 @@ class _DashBoardViewState extends State<DashBoardView> {
                                 ),
                                 const SizedBox(height: 5.0),
                                 Text(
-                                  "-${currencyFormat.format(records[records.length - id - 1]["money"])}",
+                                  "-${currencyFormat.format(records[records.length - id - 1].money)}",
                                   style: const TextStyle(
                                       fontSize: 16.0, color: Colors.purple),
                                 ),
                               ],
                             ),
                             trailing: (() {
-                              switch (records[records.length - id - 1]
-                                  ["type"]) {
+                              switch (records[records.length - id - 1].type) {
                                 case 2:
                                   return const Icon(Icons.home_work_outlined);
                                 case 1:

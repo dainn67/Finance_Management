@@ -1,9 +1,14 @@
 //categories selector
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+
 int cId = 0;
 List<String> categories = ["Chung", "Thống kê", "Tiền nhà", "Tổng kết"];
 
 //records
-List records = [];
+// List records = [];
 String jsonRecord = ''; //saved
 
 //tổng số tiền đã chi cho đồ ăn / đồ gia dụng
@@ -73,7 +78,7 @@ List<List<List<bool>>> motors = List.generate(
 );
 //saved
 
-class record {
+class Record {
   String name;
   int money;
   String date;
@@ -81,7 +86,49 @@ class record {
   int type;
   String people;
 
-  record(this.name, this.money, this.date, this.by, this.type, this.people);
+  Record(this.name, this.money, this.date, this.by, this.type, this.people);
+}
+
+class Record_Provider with ChangeNotifier{
+  List<Record> _records = [];
+
+  List<Record> get records{
+    return [..._records];  //return a copy of items only
+  }
+
+  int getSize() => records.length;
+
+  void addRecord(){
+    var debugTmp = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
+    var url = Uri.parse(
+        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+    http
+        .post(url,
+        body: json.encode({
+          'name': debugTmp.name,
+          'money': debugTmp.money,
+          'date': debugTmp.date,
+          'by': debugTmp.by,
+          'type': debugTmp.type,
+          'people': debugTmp.people,
+        }))
+        .then((res) {
+      // records.add(debugTemp);
+
+      print('Id response from Firebase${json.decode(res.body)}');
+      // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
+      // a record, we need to use that id to identify
+
+    });
+
+    _records.add(debugTmp);
+
+    notifyListeners();
+  }
+
+  void removeRecord(int id){
+    _records.removeAt(id);
+  }
 }
 
 

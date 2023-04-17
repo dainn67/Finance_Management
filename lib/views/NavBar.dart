@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 import '../data.dart';
 import 'AboutUs.dart';
@@ -21,24 +22,27 @@ class NavBarView extends StatefulWidget {
 class _NavBarViewState extends State<NavBarView> {
   @override
   Widget build(BuildContext context) {
+    final recordData = Provider.of<Record_Provider>(context);
+    final records = recordData.records;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
             accountName:
-                const Text("Phong NDH", style: TextStyle(color: Colors.white)),
-            accountEmail: const Text("pephoi@gmail.com",
+                const Text("Dai. Nguyen", style: TextStyle(color: Colors.white)),
+            accountEmail: const Text("nguyendai060703@gmail.com",
                 style: TextStyle(color: Colors.white)),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
-                child: Image.asset("assets/images/frog.jpg",
+                child: Image.asset("assets/images/big_mouth_cat.jpg",
                     height: 90, width: 90, fit: BoxFit.cover),
               ),
             ),
             decoration: const BoxDecoration(
                 image: DecorationImage(
-                    image: AssetImage("assets/images/mc.jpg"),
+                    image: AssetImage("assets/images/chill_background.jpg"),
                     fit: BoxFit.cover)),
           ),
           ListTile(
@@ -91,7 +95,7 @@ class _NavBarViewState extends State<NavBarView> {
                 child: const Text('Đồng ý'),
                 onPressed: () {
                   setState(() {
-                    records.clear();
+                    // records.clear();
                     totalFood = 0;
                     totalStationery = 0;
 
@@ -108,19 +112,7 @@ class _NavBarViewState extends State<NavBarView> {
                         }
                       }
                     }
-                    widget.functionCaller();
                   });
-                  jsonRecord = "";
-                  for (int i = 0; i < records.length; i++) {
-                    if (i == 0) {
-                      jsonRecord = "[${jsonEncode(records[i])}";
-                    } else {
-                      jsonRecord = "$jsonRecord, ${jsonEncode(records[i])}";
-                    }
-                  }
-                  if(records.isNotEmpty) jsonRecord += ']';
-                  else jsonRecord += '[]';
-                  writeData();
                   Navigator.of(context).pop();
                 },
               ),
@@ -151,21 +143,21 @@ class _NavBarViewState extends State<NavBarView> {
                 int thisYearHashed = DateTime.now().year % 2020 - 3;
 
                 //remove records of that month
-                for(int i=records.length-1; i>=0; i--){
-                  List<String> dateParts = records[i]["date"].split('/');
-                  int month = int.parse(dateParts[1]);
-                  int year = int.parse(dateParts[2]) % 2020 - 3;
-                  print("CUR MONTH: $month CUR YEAR: $year");
-                  if(month == thisMonth && year == thisYearHashed){
-                    if(records[i]["type"] == 1) {
-                      tmpFood += int.parse(records[i]["money"].toString());
-                    } else {
-                      tmpStationery += int.parse(records[i]["money"].toString());
-                    }
-                    print('DELETE ${records[i]}');
-                    records.remove(records[i]);
-                  }
-                }
+                // for(int i=records.length-1; i>=0; i--){
+                //   List<String> dateParts = records[i]["date"].split('/');
+                //   int month = int.parse(dateParts[1]);
+                //   int year = int.parse(dateParts[2]) % 2020 - 3;
+                //   print("CUR MONTH: $month CUR YEAR: $year");
+                //   if(month == thisMonth && year == thisYearHashed){
+                //     if(records[i]["type"] == 1) {
+                //       tmpFood += int.parse(records[i]["money"].toString());
+                //     } else {
+                //       tmpStationery += int.parse(records[i]["money"].toString());
+                //     }
+                //     print('DELETE ${records[i]}');
+                //     records.remove(records[i]);
+                //   }
+                // }
 
                 //refund the money of that month
 
@@ -183,19 +175,7 @@ class _NavBarViewState extends State<NavBarView> {
                   moneyToPayy[thisYearHashed][thisMonth][k] = 0;
                   saved[thisYearHashed][thisMonth][k] = 0;
                 }
-                widget.functionCaller();
               });
-              jsonRecord = "";
-              for (int i = 0; i < records.length; i++) {
-                if (i == 0) {
-                  jsonRecord = "[${jsonEncode(records[i])}";
-                } else {
-                  jsonRecord = "$jsonRecord, ${jsonEncode(records[i])}";
-                }
-              }
-              if(records.isNotEmpty) jsonRecord += ']';
-              else jsonRecord += '[]';
-              writeData();
 
               Navigator.of(context).pop();
             },
