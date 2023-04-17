@@ -1,4 +1,4 @@
-# phongs_app
+# Finance_management_app
 
 An app tracking and calculate the expenses personally or in household
 
