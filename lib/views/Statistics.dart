@@ -1,12 +1,10 @@
-import 'dart:convert';
-import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../data.dart';
 import 'DashBoard.dart';
-import 'dart:io';
 
 class StatisticView extends StatefulWidget {
   const StatisticView({Key? key}) : super(key: key);
@@ -17,6 +15,12 @@ class StatisticView extends StatefulWidget {
 
 class _StatisticViewState extends State<StatisticView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -291,23 +295,16 @@ class _StatisticViewState extends State<StatisticView> {
         }
       }
     }
-    //lưu lại tiền mới
-    final fileSummary = await _localTotalSummary;
-    fileSummary.writeAsString(jsonEncode(moneyToPayy));
   }
 
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localRecords async {
-    final path = await _localPath;
-    return File('$path/records.txt');
-  }
-
-  Future<File> get _localTotalSummary async {
-    final path = await _localPath;
-    return File('$path/summary.txt');
+  Future<void> getAndSetRecords() async {
+    var uri = Uri.parse(
+        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+    try{
+      final res = await http.get(uri);
+      print(res);
+    }catch (err){
+      rethrow;
+    }
   }
 }

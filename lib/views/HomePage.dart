@@ -21,16 +21,13 @@ class HomePageView extends StatefulWidget {
 
 class _HomePageViewState extends State<HomePageView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
-
-  //listen to change data
+  var isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
-
     final state = Provider.of<State_Provider>(context);
-    bool isLoading = state.getLoadingState();
 
     return Scaffold(
       backgroundColor: Colors.blue,
@@ -38,97 +35,19 @@ class _HomePageViewState extends State<HomePageView> {
       appBar: AppBar(
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.bug_report_outlined),
-            onPressed: () {
-              state.changeLoading();
-
-              var record = Record('RandomName', 100000, '1/1/1111', 2, 2, '11111');
-
-              //SEND HTTP REQUEST
-              var url = Uri.parse(
-                  'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-              http
-                  .post(url,
-                      body: json.encode({
-                        'name': record.name,
-                        'money': record.money,
-                        'date': record.date,
-                        'by': record.by,
-                        'type': record.type,
-                        'people': record.people,
-                      }))
-                  .then((res) {
-                state.changeLoading();
-                recordData.addRecord(record);
-                print(json.decode(res.body));
-                // json.decode(res.body) is recommended to be used as id of record, so that when user need to delete
-                // a record, we need to use that id to identify
-              });
-            } /*ngoặc nhọn của onpressed*/,
+              icon: const Icon(Icons.bug_report_outlined),
+              onPressed: debug
           ),
         ],
         elevation: 0.0,
       ),
       body: Column(
         children: <Widget>[
-//Categories select
-          Container(
-              height: 85.0,
-              color: Colors.blue,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                itemBuilder: (context, id) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        cId = id;
-                      });
-                    },
-                    child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0, vertical: 30.0),
-                        child: Text(categories[id],
-                            style: GoogleFonts.firaSans(
-                                fontSize: 22,
-                                color: id == cId ? Colors.white : Colors.black,
-                                letterSpacing: 1))),
-                  );
-                },
-              )),
+          //Categories select
+          categoriesSelector(),
 
-//Each category view
-          if (cId == 0)
-            Expanded(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 30.0),
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30.0),
-                        topRight: Radius.circular(30.0))),
-                child: DashBoardView(),
-              ),
-            )
-          else if (cId == 1)
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0, vertical: 30.0),
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(30.0),
-                        topRight: Radius.circular(30.0))),
-                child: StatisticView(),
-              ),
-            )
-          else if (cId == 2)
-            Expanded(child: HousingView())
-          else
-            Expanded(child: MoreView()),
+          //Each category view
+          getEachPageView(cId, isLoading),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -139,46 +58,114 @@ class _HomePageViewState extends State<HomePageView> {
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add),
       ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // bottomNavigationBar: BottomAppBar(
-      //   // shape: const CircularNotchedRectangle(),
-      //   child: Row(
-      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //     children: <Widget>[
-      //       IconButton(
-      //         icon: const Icon(Icons.filter_list_alt),
-      //         onPressed: () {
-      //           filterOption();
-      //         },
-      //       ),
-      //       IconButton(
-      //         icon: const Icon(Icons.search),
-      //         onPressed: () {},
-      //       ),
-      //     ],
-      //   ),
-      // ),
     );
   }
 
-  void addNewRecord() => showModalBottomSheet(
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16.0),
-          topRight: Radius.circular(16.0),
-        ),
-        side: BorderSide(
-          color: Colors.black,
-          width: 2.0,
-        ),
-      ),
-      context: context,
-      builder: (BuildContext bc) {
-        return addNewRecordView();
-      });
+  Widget categoriesSelector() {
+    return Container(
+        height: 85.0,
+        color: Colors.blue,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length,
+          itemBuilder: (context, id) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  cId = id;
+                });
+              },
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0, vertical: 30.0),
+                  child: Text(categories[id],
+                      style: GoogleFonts.firaSans(
+                          fontSize: 22,
+                          color: id == cId ? Colors.white : Colors.black,
+                          letterSpacing: 1))),
+            );
+          },
+        ));
+  }
 
-  void filterOption() => showDialog(
+  Widget getEachPageView(int cId, bool isLoading) {
+    if (isLoading) {
+      return Expanded(
+        child: Container(
+          width: MediaQuery
+              .of(context)
+              .size
+              .width,
+          padding:
+          const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+          decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30.0),
+                  topRight: Radius.circular(30.0))),
+          child: const Center(child: CircularProgressIndicator(),),
+        ),
+      );
+    } else {
+      switch (cId) {
+        case 0:
+          return Expanded(
+            child: Container(
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width,
+              padding:
+              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30.0),
+                      topRight: Radius.circular(30.0))),
+              child: DashBoardView(),
+            ),
+          );
+        case 1:
+          return Expanded(
+            child: Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30.0),
+                      topRight: Radius.circular(30.0))),
+              child: StatisticView(),
+            ),
+          );
+        case 2:
+          return Expanded(child: HousingView());
+        default:
+          return Expanded(child: MoreView());
+      }
+    }
+  }
+
+  void addNewRecord() =>
+      showModalBottomSheet(
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16.0),
+              topRight: Radius.circular(16.0),
+            ),
+            side: BorderSide(
+              color: Colors.black,
+              width: 2.0,
+            ),
+          ),
+          context: context,
+          builder: (BuildContext bc) {
+            return addNewRecordView();
+          });
+
+  void filterOption() =>
+      showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -234,4 +221,29 @@ class _HomePageViewState extends State<HomePageView> {
           );
         },
       );
+
+  void debug() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    //THIS SHOULD BE PUT IN DATA.DART INSIDE RECORD_PROVIDER
+    var uri = Uri.parse(
+        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+    try {
+      final res = await http.get(uri);
+      setState(() {
+        isLoading = false;
+      });
+      final extractedData = json.decode(res.body) as Map<String,dynamic>; //string is the uniqueID and dynamic is Record object
+      final List<Record> records = [];
+      extractedData.forEach((key, data) {
+        print('id: $key');
+        records.add(Record(data['name'], data['money'], data['date'],
+            data['by'], data['type'], data['people']));
+      });
+    } catch (err) {
+      rethrow;
+    }
+  }
 }
