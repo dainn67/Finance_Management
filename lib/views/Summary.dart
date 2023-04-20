@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -7,14 +6,14 @@ import 'package:phongs_app/data.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
-class MoreView extends StatefulWidget {
-  const MoreView({Key? key}) : super(key: key);
+class SummaryView extends StatefulWidget {
+  const SummaryView({Key? key}) : super(key: key);
 
   @override
-  State<MoreView> createState() => _MoreViewState();
+  State<SummaryView> createState() => _SummaryViewState();
 }
 
-class _MoreViewState extends State<MoreView> {
+class _SummaryViewState extends State<SummaryView> {
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
   int displayMonth = DateTime.now().month;
@@ -32,7 +31,7 @@ class _MoreViewState extends State<MoreView> {
               children: [
                 OutlinedButton.icon(
                   icon: const Icon(Icons.summarize_outlined),
-                  label: const Text('Lưu tổng kết'),
+                  label: const Text('Save summary'),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.blue),
                   ),

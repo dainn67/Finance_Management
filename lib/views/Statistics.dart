@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../data.dart';
+import '../popupViews/currentRecord.dart';
 import 'DashBoard.dart';
 
 class StatisticView extends StatefulWidget {
@@ -17,12 +18,6 @@ class _StatisticViewState extends State<StatisticView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
@@ -30,167 +25,214 @@ class _StatisticViewState extends State<StatisticView> {
     final state = Provider.of<State_Provider>(context);
     final isLoading = state.getLoadingState();
 
-    switch(isLoading){
-      case true: return const Center(child: CircularProgressIndicator());
-      default:  return (!isLoading && records.isNotEmpty)
-          ? ListView.builder(
-              itemCount: records.length,
-              itemBuilder: (context, id) {
-                return Dismissible(
-                  key: UniqueKey(),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (direction) {
-                    setState(() {
-                      recordData.removeRecord(records.length - id - 1);
-                      delete(records, records.length - id - 1);
-                    });
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (direction) {
-                    return showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                              title: const Text("Delete record"),
-                              content: const Text(
-                                  "Are you sure you want to delete this record"),
-                              actions: <Widget>[
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(false);     //return false so that confirmDismiss don't delete the record
-                                    },
-                                    child: const Text("Cancel")),
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(true);     //return true so that confirmDismiss delete the record
-                                    }, child: const Text("Delete", style: TextStyle(color: Colors.red),))
+    switch (isLoading) {
+      case true:
+        return const Center(child: CircularProgressIndicator());
+      default:
+        return records.isNotEmpty
+            ? RefreshIndicator(
+                onRefresh: () {
+                  Provider.of<State_Provider>(context, listen: false)
+                      .changeLoading();
+                  return refreshRecords(context);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView.builder(
+                      itemCount: records.length,
+                      itemBuilder: (context, id) {
+                        return Dismissible(
+                          key: UniqueKey(),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (direction) {
+                            recordData.removeRecord(records.length - id - 1);
+                          },
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            child:
+                                const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          confirmDismiss: (direction) {
+                            return showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                      title: const Text("Delete record"),
+                                      content: const Text(
+                                          "Are you sure you want to delete this record"),
+                                      actions: <Widget>[
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(
+                                                  false); //return false so that confirmDismiss don't delete the record
+                                            },
+                                            child: const Text("Cancel")),
+                                        TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(
+                                                  true); //return true so that confirmDismiss delete the record
+                                            },
+                                            child: const Text(
+                                              "Delete",
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ))
+                                      ],
+                                    ));
+                          },
+                          child: ListTile(
+                            onTap: () {
+                              detail_edit(records, records.length - id - 1);
+                            },
+                            onLongPress: () {
+                              print(
+                                  'length: ${records.length}\nid = $id\nrecord[${records.length - id - 1}]');
+                            },
+                            leading: buildLeading(
+                                records[records.length - id - 1].by),
+                            subtitle:
+                                Text(records[records.length - id - 1].date),
+                            title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  records[records.length - id - 1].name,
+                                  style: const TextStyle(
+                                      fontSize: 20.0,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 5.0),
+                                Text(
+                                    "-${currencyFormat.format(records[records.length - id - 1].money)}",
+                                    style: const TextStyle(
+                                        fontSize: 16.0, color: Colors.purple)),
                               ],
-                            ));
-                  },
-                  child: ListTile(
-                    onTap: () {
-                      detailAndEdit(records, records.length - id - 1);
-                    },
-                    onLongPress: () {
-                      print('length: ${records.length}\nid = $id\nrecord[${records.length - id - 1}]');
-                    },
-                    leading: buildLeading(records[records.length - id - 1].by),
-                    subtitle: Text(records[records.length - id - 1].date),
-                    title: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          records[records.length - id - 1].name,
-                          style: const TextStyle(
-                              fontSize: 20.0, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 5.0),
-                        Text(
-                            "-${currencyFormat.format(records[records.length - id - 1].money)}",
-                            style: const TextStyle(
-                                fontSize: 16.0, color: Colors.purple)),
-                      ],
-                    ),
-                    trailing: (() {
-                      switch (records[records.length - id - 1].type) {
-                        case 2:
-                          return const Icon(Icons.home_work_outlined);
-                        case 1:
-                          return const Icon(Icons.fastfood_outlined);
-                      }
-                    })(),
-                  ),
-                );
-              })
-          : Container(
-              alignment: Alignment.center,
-              child: const Text(
-                'Chưa có chi tiêu nào',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                            ),
+                            trailing: (() {
+                              switch (records[records.length - id - 1].type) {
+                                case 2:
+                                  return const Icon(Icons.home_work_outlined);
+                                case 1:
+                                  return const Icon(Icons.fastfood_outlined);
+                              }
+                            })(),
+                          ),
+                        );
+                      }),
                 ),
-              ),
-            );
+              )
+            : Container(
+                alignment: Alignment.center,
+                child: const Text(
+                  'No expense',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
     }
   }
+
+  void detail_edit(List<Record> records, int i) => showModalBottomSheet(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16.0),
+          topRight: Radius.circular(16.0),
+        ),
+        side: BorderSide(
+          color: Colors.black,
+          width: 2.0,
+        ),
+      ),
+      context: context,
+      builder: (BuildContext bc) {
+        int type = records[i].type;
+        int buyer = records[i].by;
+        String people = records[i].people;
+        String date = records[i].date;
+        return currentRecordView(i, type, buyer, people, date);
+      });
 
   void detailAndEdit(List<Record> records, int id) => showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Chi tiết'),
-            content: Container(
+            title: const Text('Detail'),
+            content: SizedBox(
               height: MediaQuery.of(context).size.height * 0.5,
               width: MediaQuery.of(context).size.height * 0.9,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    title: Text("Tên chi tiêu",
+                    title: Text(records[id].name,
                         style: GoogleFonts.firaSans(
-                          fontSize: 22,
-                        )),
-                    trailing: Text(records[id].name,
-                        style: GoogleFonts.firaSans(
-                          fontSize: 22,
-                        )),
+                            fontSize: 22, fontWeight: FontWeight.bold)),
                   ),
                   ListTile(
-                    title: Text("Số tiền",
+                    title: Text("Amount",
                         style: GoogleFonts.firaSans(fontSize: 22)),
                     trailing: Text(currencyFormat.format(records[id].money),
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   ),
                   ListTile(
-                    title: Text("Người mua",
+                    title: Text("Purchaser",
                         style: GoogleFonts.firaSans(fontSize: 22)),
                     trailing: Text(getBuyer(records[id].by),
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   ),
                   ListTile(
-                    title: Text("Người dùng",
+                    title: Text("Users",
                         style: GoogleFonts.firaSans(fontSize: 22)),
                     subtitle: Text(getPeople(records[id].people)),
                     trailing: Text(getNumberOfPeople(records[id].people)),
                   ),
                   ListTile(
-                    title: Text("Ngày mua",
-                        style: GoogleFonts.firaSans(fontSize: 22)),
+                    title:
+                        Text("Date", style: GoogleFonts.firaSans(fontSize: 22)),
                     trailing: Text(records[id].date,
                         style: GoogleFonts.firaSans(fontSize: 22)),
                   ),
                   ListTile(
-                    title: Text("Mỗi người đóng",
+                    title: Text("Each pay",
                         style: GoogleFonts.firaSans(fontSize: 22)),
                     trailing: Text(
                         currencyFormat.format(getEqualMoney(
                             records[id].money, records[id].people)),
                         style: GoogleFonts.firaSans(fontSize: 22)),
-                  )
+                  ),
                 ],
               ),
             ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Change'),
+                onPressed: () {
+                  // _electric.clear();
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () async {
+                  // electric[hashYear(displayYear)][displayMonth] = int.parse(
+                  //     _electric.text
+                  //         .replaceAll(RegExp(r'\.\d+'), '')
+                  //         .replaceAll(',', ''));
+                  // final fileElectric = await _localElectric;
+                  // fileElectric.writeAsStringSync(jsonEncode(electric));
+                  // _electric.clear();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           );
         },
       );
-
-  void delete(List<Record> records, int id) {
-    print('Delete at id: $id');
-    setState(() {
-      // refund(
-      //     records[id].money,
-      //     records[id].by,
-      //     records[id].people,
-      //     records[id].date,
-      //     records[id].type);
-    });
-  }
 
   String getBuyer(int i) {
     switch (i) {
@@ -300,11 +342,16 @@ class _StatisticViewState extends State<StatisticView> {
   Future<void> getAndSetRecords() async {
     var uri = Uri.parse(
         'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-    try{
+    try {
       final res = await http.get(uri);
       print(res);
-    }catch (err){
+    } catch (err) {
       rethrow;
     }
+  }
+
+  Future<void> refreshRecords(BuildContext context) async {
+    await Provider.of<Record_Provider>(context, listen: false).fetchRecord();
+    Provider.of<State_Provider>(context, listen: false).changeLoading();
   }
 }

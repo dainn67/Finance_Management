@@ -25,7 +25,6 @@ int filter = 0;
 //từ năm 2023 đến 2026 từ tháng 4 đến 12, từ Phong > Tùng > Lâm > Hiển
 //1:2023  2:2024  3:2025  4:2026 // tháng tương tự số // 1-Phong 2-Tùng  3-Lâm  4-Hiển
 
-// List moneyToPay = List.filled(5, 0);
 List<List<List<int>>> moneyToPayy = List.generate(
   4, // 0-2023  1-2024  2-2025  3-2026
   (i) => List.generate(
@@ -37,7 +36,6 @@ List<List<List<int>>> moneyToPayy = List.generate(
   ),
 );
 String jsonMoney = '';
-//saved
 
 //Lưu từ lần tổng kết cuối
 List<List<List<int>>> saved = List.generate(
@@ -50,7 +48,6 @@ List<List<List<int>>> saved = List.generate(
     ),
   ),
 );
-//saved
 
 //HOUSING
 //Danh sách tiền nhà mặc định 500k, điện nước, xe các tháng, mặc định 80k
@@ -79,6 +76,7 @@ List<List<List<bool>>> motors = List.generate(
 //saved
 
 class Record {
+  String id;
   String name;
   int money;
   String date;
@@ -86,7 +84,7 @@ class Record {
   int type;
   String people;
 
-  Record(this.name, this.money, this.date, this.by, this.type, this.people);
+  Record(this.id, this.name, this.money, this.date, this.by, this.type, this.people);
 }
 
 class Record_Provider with ChangeNotifier{
@@ -105,6 +103,28 @@ class Record_Provider with ChangeNotifier{
 
   void removeRecord(int id){
     _records.removeAt(id);
+    notifyListeners();
+  }
+
+  Future<void> fetchRecord() async {
+    var uri = Uri.parse(
+        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+    try {
+      _records.clear();
+
+      final res = await http.get(uri);
+
+      final extractedData = json.decode(res.body) as Map<String, dynamic>; //string is the uniqueID and dynamic is Record object
+      extractedData.forEach((key, data) {
+        print('id: $key');
+        _records.add(Record(key, data['name'], data['money'], data['date'],
+            data['by'], data['type'], data['people']));
+      });
+      print('Fetch done');
+      notifyListeners();
+    } catch (err) {
+      rethrow;
+    }
   }
 }
 
@@ -118,3 +138,4 @@ class State_Provider with ChangeNotifier{
     notifyListeners();
   }
 }
+

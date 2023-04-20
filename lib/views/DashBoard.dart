@@ -20,12 +20,16 @@ class _DashBoardViewState extends State<DashBoardView> {
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
 
+    final state = Provider.of<State_Provider>(context);
+    final isLoading = state.getLoadingState();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         children: [
+          const SizedBox(height: 30),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               GestureDetector(
                 onTap: () {},
@@ -51,7 +55,7 @@ class _DashBoardViewState extends State<DashBoardView> {
                     children: [
                       const Icon(Icons.fastfood_outlined),
                       const SizedBox(height: 10),
-                      Text("ĐỒ ĂN",
+                      Text("Food",
                           style: GoogleFonts.firaSans(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 20.0),
@@ -87,7 +91,7 @@ class _DashBoardViewState extends State<DashBoardView> {
                       const Icon(Icons.home_work_outlined),
                       const SizedBox(height: 10),
                       Text(
-                        "ĐỒ GIA DỤNG",
+                        "Household",
                         style: GoogleFonts.firaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -103,103 +107,122 @@ class _DashBoardViewState extends State<DashBoardView> {
               ),
             ],
           ),
+          const Divider(),
           records.isNotEmpty
               ? Center(
-                child: Column(
-                  children: [
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.05),
-                    Text("Chi tiêu gần đây",
-                        style: GoogleFonts.firaSans(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              )
-              : Center(
-                child: Column(
-                  children: [
-                    SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.05),
-                    Text("Chưa có chi tiêu nào",
-                        style: GoogleFonts.firaSans(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-          records.isNotEmpty
-              ? Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(10.0))),
-                    child: ListView.builder(
-                        itemCount: records.length <= 5 ? records.length : 5,
-                        itemBuilder: (context, id) {
-                          return ListTile(
-                            leading: buildLeading(records[records.length - id - 1].by),
-                            shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10.0))),
-                            subtitle: Text(records[records.length - id - 1].date
-                                .toString()),
-                            title: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  records[records.length - id - 1].name
-                                      .toString(),
-                                  style: const TextStyle(
-                                      fontSize: 20.0,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 5.0),
-                                Text(
-                                  "-${currencyFormat.format(records[records.length - id - 1].money)}",
-                                  style: const TextStyle(
-                                      fontSize: 16.0, color: Colors.purple),
-                                ),
-                              ],
-                            ),
-                            trailing: (() {
-                              switch (records[records.length - id - 1].type) {
-                                case 2:
-                                  return const Icon(Icons.home_work_outlined);
-                                case 1:
-                                  return const Icon(Icons.fastfood_outlined);
-                              }
-                            })(),
-                          );
-                        }),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.03),
+                      Text("Recent record",
+                          style: GoogleFonts.firaSans(
+                              fontSize: 24, fontWeight: FontWeight.bold)),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.02),
+                    ],
                   ),
                 )
-              : Container(),
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.2),
+                      Text("No recent expense",
+                          style: GoogleFonts.firaSans(
+                              fontSize: 24, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+          getRecentRecords(isLoading, records),
         ],
       ),
     );
+  }
+
+  Widget getRecentRecords(bool isLoading, List<Record> records) {
+    switch (isLoading) {
+      case true:
+        return const Center(child: CircularProgressIndicator());
+      default:
+        if (records.isNotEmpty) {
+          return Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(10.0))),
+              child: ListView.builder(
+                  itemCount: records.length <= 5 ? records.length : 5,
+                  itemBuilder: (context, id) {
+                    return ListTile(
+                      leading:
+                          buildLeading(records[records.length - id - 1].by),
+                      shape: const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(10.0))),
+                      subtitle: Text(
+                          records[records.length - id - 1].date.toString()),
+                      title: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            records[records.length - id - 1].name.toString(),
+                            style: const TextStyle(
+                                fontSize: 20.0, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 5.0),
+                          Text(
+                            "-${currencyFormat.format(records[records.length - id - 1].money)}",
+                            style: const TextStyle(
+                                fontSize: 16.0, color: Colors.purple),
+                          ),
+                        ],
+                      ),
+                      trailing: (() {
+                        switch (records[records.length - id - 1].type) {
+                          case 2:
+                            return const Icon(Icons.home_work_outlined);
+                          case 1:
+                            return const Icon(Icons.fastfood_outlined);
+                        }
+                      })(),
+                    );
+                  }),
+            ),
+          );
+        } else {
+          return Container();
+        }
+    }
   }
 }
 
 Widget buildLeading(int value) {
   switch (value) {
     case 1:
-      return Text('Phong', style: GoogleFonts.firaSans(
-        fontSize: 16,
-      ));
+      return Text('Phong',
+          style: GoogleFonts.firaSans(
+            fontSize: 16,
+          ));
     case 2:
-      return Text('Khánh', style: GoogleFonts.firaSans(
-        fontSize: 16,
-      ));
+      return Text('Khánh',
+          style: GoogleFonts.firaSans(
+            fontSize: 16,
+          ));
     case 3:
-      return Text('Tùng', style: GoogleFonts.firaSans(
-        fontSize: 16,
-      ));
+      return Text('Tùng',
+          style: GoogleFonts.firaSans(
+            fontSize: 16,
+          ));
     case 4:
-      return Text('Lâm', style: GoogleFonts.firaSans(
-        fontSize: 16,
-      ));
+      return Text('Lâm',
+          style: GoogleFonts.firaSans(
+            fontSize: 16,
+          ));
     default:
-      return Text('Hiển', style: GoogleFonts.firaSans(
-        fontSize: 16,
-      ));
+      return Text('Hiển',
+          style: GoogleFonts.firaSans(
+            fontSize: 16,
+          ));
   }
 }

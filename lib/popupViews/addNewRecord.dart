@@ -23,7 +23,6 @@ class _addNewRecordViewState extends State<addNewRecordView> {
   final _priceFocusNode = FocusNode();
   final _descFocusNode = FocusNode();
 
-  var data = {'name': '', 'title': '', 'desc': '', 'imgURL': ''};
 
   static const _locale = 'en';
 
@@ -437,20 +436,36 @@ class _addNewRecordViewState extends State<addNewRecordView> {
       String _people = "";
       for (int i = 0; i < people.length; i++) {
         if (people[i]) {
-          _people = _people + "1";
+          _people = "${_people}1";
         } else {
-          _people = _people + '0';
+          _people = '${_people}0';
         }
       }
 
-      if (type == 2)
+      if (type == 2) {
         totalStationery += money;
-      else
+      } else {
         totalFood += money;
+      }
+
       computeExpenses(money, int.parse(getNumberOfPeople(_people)), _people,
           buyer, _selectedDate.month, _selectedDate.year);
 
+      //SEND HTTP REQUEST
+      var uri = Uri.parse(
+          'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+      final res = await http.post(uri,
+          body: json.encode({
+            'name': cname.text.toString(),
+            'money': money,
+            'date': '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+            'by': buyer,
+            'type': type,
+            'people': _people,
+          }));
+
       var record = Record(
+          json.decode(res.body)['name'],    //get the unique id back and use as id of record
           cname.text.toString(),
           money,
           '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
@@ -458,20 +473,8 @@ class _addNewRecordViewState extends State<addNewRecordView> {
           type,
           _people);
 
-      //SEND HTTP REQUEST
-      var uri = Uri.parse(
-          'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-      final res = await http.post(uri,
-          body: json.encode({
-            'name': record.name,
-            'money': record.money,
-            'date': record.date,
-            'by': record.by,
-            'type': record.type,
-            'people': record.people,
-          }));
       data.addRecord(record);
-      print('Result from Firebase: ${json.decode(res.body)}');
+
       //   // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
       //   // a record, we need to use that id to identify
 
