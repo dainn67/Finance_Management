@@ -84,26 +84,41 @@ class Record {
   int type;
   String people;
 
-  Record(this.id, this.name, this.money, this.date, this.by, this.type, this.people);
+  Record(this.id, this.name, this.money, this.date, this.by, this.type,
+      this.people);
 }
 
-class Record_Provider with ChangeNotifier{
+class Record_Provider with ChangeNotifier {
   List<Record> _records = [];
 
-  List<Record> get records{
-    return [..._records];  //return a copy of items only
+  List<Record> get records {
+    return [..._records]; //return a copy of items only
   }
 
-  int getSize() => records.length;
+  int getSize() => _records.length;
 
-  void addRecord(Record newRecord){
+  void addRecord(Record newRecord) {
     _records.add(newRecord);
     notifyListeners();
   }
 
-  void removeRecord(int id){
+  Future<void> removeRecord(int id) async {
+    var uri = Uri.parse(
+        'https://phong-s-app-default-rtdb.firebaseio.com/records/${_records[id].id}.json');
+    final backupRecord = _records[id];
     _records.removeAt(id);
-    notifyListeners();
+    http.delete(uri).then((_) {
+      // fetchRecord().then((_) {
+      //   print('Fetch done after deletion');
+      // });
+      print('Send HTTP delete record $id finished');
+
+      notifyListeners();
+    }).catchError((err) {
+      print('DELETE ERROR: $err');
+      _records.insert(id, backupRecord);
+      notifyListeners();
+    });
   }
 
   Future<void> fetchRecord() async {
@@ -113,29 +128,34 @@ class Record_Provider with ChangeNotifier{
       _records.clear();
 
       final res = await http.get(uri);
-
-      final extractedData = json.decode(res.body) as Map<String, dynamic>; //string is the uniqueID and dynamic is Record object
-      extractedData.forEach((key, data) {
-        print('id: $key');
-        _records.add(Record(key, data['name'], data['money'], data['date'],
-            data['by'], data['type'], data['people']));
-      });
-      print('Fetch done');
-      notifyListeners();
+      if (res.body == null) print('BODY IS NULL MF');
+      if (res.body != null) {
+        final extractedData = json.decode(res.body) as Map<String,
+            dynamic>; //string is the uniqueID and dynamic is Record object
+        extractedData.forEach((key, data) {
+          print('id: $key');
+          _records.add(Record(key, data['name'], data['money'], data['date'],
+              data['by'], data['type'], data['people']));
+        });
+        print('Fetch done');
+        notifyListeners();
+      }
     } catch (err) {
+      print('FETCH ERROR: $err\n');
       rethrow;
     }
   }
 }
 
-class State_Provider with ChangeNotifier{
-  bool isLoading = false;
+class Loading_State_Provider with ChangeNotifier {
+  bool _isLoading = false;
 
-  bool getLoadingState() => isLoading;
+  bool get getLoadingState {
+    return _isLoading;
+  }
 
-  void changeLoading() {
-    isLoading = !isLoading;
+  void changeState() {
+    _isLoading = !_isLoading;
     notifyListeners();
   }
 }
-

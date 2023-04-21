@@ -43,38 +43,11 @@ class _GeneralScreenState extends State<GeneralScreen> {
             actions: <Widget>[
               IconButton(
                 icon: const Icon(Icons.bug_report_outlined),
-                onPressed: () async {
-                  Provider.of<State_Provider>(context, listen: false).changeLoading();
-
-                  //THIS SHOULD BE PUT IN DATA.DART INSIDE RECORD_PROVIDER
-                  var uri = Uri.parse(
-                      'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-                  try {
-                    final res = await http.get(uri);
-
-                    final extractedData = json.decode(res.body) as Map<String,
-                        dynamic>; //string is the uniqueID and dynamic is Record object
-                    final List<Record> records = [];
-                    extractedData.forEach((key, data) {
-                      records.add(Record(
-                          key,
-                          data['name'],
-                          data['money'],
-                          data['date'],
-                          data['by'],
-                          data['type'],
-                          data['people']));
-                    });
-
-                    Provider.of<State_Provider>(context, listen: false).changeLoading();
-                  } catch (err) {
-                    rethrow;
-                  }
-                } /*ngoặc nhọn của onpressed*/,
+                onPressed: debug,
               ),
             ],
             elevation: 0.0,
-            title: const Text("Finance management"),
+            title: const Text("Welcome back, Đại"),
             bottom: const TabBar(
               tabs: <Widget>[
                 Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
@@ -94,28 +67,6 @@ class _GeneralScreenState extends State<GeneralScreen> {
               SummaryView()
             ],
           ),
-          // bottomNavigationBar: BottomNavigationBar(
-          //   onTap: selectCategories,
-          //   unselectedItemColor: Colors.white60,
-          //   selectedItemColor: Colors.white,
-          //   currentIndex: selectedId,
-          //   type: BottomNavigationBarType.shifting,
-          //   items: const [
-          //     BottomNavigationBarItem(
-          //         backgroundColor: Colors.lightBlue,
-          //         icon: Icon(Icons.dashboard),
-          //         label: 'Dashboard'),
-          //     BottomNavigationBarItem(
-          //         icon: Icon(Icons.bar_chart),
-          //         label: 'Statistics'),
-          //     BottomNavigationBarItem(
-          //         icon: Icon(Icons.home),
-          //         label: 'Housing'),
-          //     BottomNavigationBarItem(
-          //         icon: Icon(Icons.summarize),
-          //         label: 'Summary'),
-          //   ],
-          // ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               addNewRecord();
@@ -150,4 +101,29 @@ class _GeneralScreenState extends State<GeneralScreen> {
       builder: (BuildContext bc) {
         return const addNewRecordView();
       });
+
+  Future<void> debug() async{
+    var uri = Uri.parse(
+        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
+    final res = await http.post(uri,
+        body: json.encode({
+          'name': 'Dummy name',
+          'money': 200000,
+          'date': '20/4/2023',
+          'by': 1,
+          'type': 2,
+          'people': '11111',
+        }));
+
+    var record = Record(
+        json.decode(res.body)['name'],    //get the unique id back and use as id of record
+        'Dummy name',
+        200000,
+        '20/4/2023',
+        1,
+        2,
+        '11111');
+
+    Provider.of<Record_Provider>(context, listen: false).addRecord(record);
+  }
 }

@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => Record_Provider()),
-        ChangeNotifierProvider(create: (context) => State_Provider()),
+        ChangeNotifierProvider(create: (context) => Loading_State_Provider()),
       ],
       child: const MaterialApp(
           debugShowCheckedModeBanner: false,

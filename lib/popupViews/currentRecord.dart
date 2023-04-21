@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
 import '../data.dart';
 
 class currentRecordView extends StatefulWidget {
@@ -69,12 +69,9 @@ class _currentRecordViewState extends State<currentRecordView> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const Center(
+            Center(
               child: Text("Record detail",
-                  style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold)),
+                  style: GoogleFonts.firaSans(fontSize: 22, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 10),
             Container(

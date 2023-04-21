@@ -42,28 +42,28 @@ class _NavBarViewState extends State<NavBarView> {
           ),
           ListTile(
               leading: const Icon(Icons.account_tree_outlined),
-              title: const Text("Đặt lại"),
+              title: const Text("Reset"),
               onTap: () => reset()),
           ListTile(
               leading: const Icon(Icons.account_tree_outlined),
-              title: const Text("Đặt lại tháng này"),
+              title: const Text("Reset this month"),
               onTap: () => resetThisMonth()),
           ListTile(
             leading: const Icon(Icons.question_mark),
-            title: const Text("Hướng dẫn dùng"),
+            title: const Text("User guide"),
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (context) => UserGuide())),
           ),
           ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text("Cài đặt"),
+              title: const Text("Settings"),
               onTap: () {
                 setting();
               }),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text("Thông tin app"),
+            title: const Text("App's information"),
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const AboutUs())),
           ),
@@ -77,17 +77,17 @@ class _NavBarViewState extends State<NavBarView> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Xác nhận hành động'),
-            content: const Text('Bạn có chắc muốn đặt lại dữ liệu ?'),
+            title: const Text('Confirm action'),
+            content: const Text('Are you sure you want to reset every thing?'),
             actions: <Widget>[
               TextButton(
-                child: const Text('Huỷ'),
+                child: const Text('Cancel'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
-                child: const Text('Đồng ý'),
+                child: const Text('Agree'),
                 onPressed: () {
                   setState(() {
                     // records.clear();
@@ -120,17 +120,17 @@ class _NavBarViewState extends State<NavBarView> {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Xác nhận hành động'),
-        content: const Text('Bạn có chắc muốn đặt lại dữ liệu của tháng này ?'),
+        title: const Text('Confirm action'),
+        content: const Text('Are you sure you want to reset this month\'s data ?'),
         actions: <Widget>[
           TextButton(
-            child: const Text('Huỷ'),
+            child: const Text('Cancel'),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: const Text('Đồng ý'),
+            child: const Text('Agree'),
             onPressed: () async {
               setState(() {
                 int tmpFood = 0, tmpStationery = 0;
@@ -184,11 +184,11 @@ class _NavBarViewState extends State<NavBarView> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Hướng dẫn sử dụng'),
+            title: const Text('User guide'),
             content: const Text('Note debug: Cho file readme vào đây'),
             actions: <Widget>[
               TextButton(
-                child: const Text('Xong'),
+                child: const Text('Done'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -202,8 +202,8 @@ class _NavBarViewState extends State<NavBarView> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Cài đặt'),
-            content: const Text('Chưa có cài đặt'),
+            title: const Text('Settings'),
+            content: const Text('No settings yet'),
             actions: <Widget>[
               TextButton(
                 child: const Text('OK'),
@@ -215,92 +215,4 @@ class _NavBarViewState extends State<NavBarView> {
           );
         },
       );
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localCheck async {
-    final path = await _localPath;
-    return File('$path/check.txt');
-  }
-  Future<File> get _localRecords async {
-    final path = await _localPath;
-    return File('$path/records.txt');
-  }
-  Future<File> get _localTotalStationery async {
-    final path = await _localPath;
-    return File('$path/stationery.txt');
-  }
-  Future<File> get _localTotalFood async {
-    final path = await _localPath;
-    return File('$path/food.txt');
-  }
-  Future<File> get _localTotalSummary async {
-    final path = await _localPath;
-    return File('$path/summary.txt');
-  }
-
-  Future<File> get _localMotors async {
-    final path = await _localPath;
-    return File('$path/motors.txt');
-  }
-
-  Future<File> get _localHouse async {
-    final path = await _localPath;
-    return File('$path/house.txt');
-  }
-
-  Future<File> get _localElectric async {
-    final path = await _localPath;
-    return File('$path/electric.txt');
-  }
-
-  Future<File> get _localWater async {
-    final path = await _localPath;
-    return File('$path/water.txt');
-  }
-
-  Future<File> get _localMotorFee async {
-    final path = await _localPath;
-    return File('$path/motorsFee.txt');
-  }
-
-  Future<File> get _localSaved async {
-    final path = await _localPath;
-    return File('$path/saved.txt');
-  }
-
-  Future<void> writeData() async {
-    final fileRecords = await _localRecords;
-    fileRecords.writeAsStringSync(jsonRecord.toString());
-
-    final fileStation = await _localTotalStationery;
-    fileStation.writeAsString('$totalStationery');
-
-    final fileFood = await _localTotalFood;
-    fileFood.writeAsString('$totalFood');
-
-    final fileSummary = await _localTotalSummary;
-    fileSummary.writeAsString(jsonEncode(moneyToPayy));
-
-    final fileSaved = await _localSaved;
-    fileSaved.writeAsString(jsonEncode(saved));
-
-    final fileHouse = await _localHouse;
-    fileHouse.writeAsStringSync(jsonEncode(house));
-
-    final fileElectric = await _localElectric;
-    fileElectric.writeAsStringSync(jsonEncode(electric));
-
-    final fileWater = await _localWater;
-    fileWater.writeAsStringSync(jsonEncode(water));
-
-    final fileFee = await _localMotorFee;
-    fileFee.writeAsStringSync(jsonEncode(motorFee));
-
-    final fileCheck = await _localCheck;
-    fileCheck.writeAsString(jsonEncode(check));
-  }
 }

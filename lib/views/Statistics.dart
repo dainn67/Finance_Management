@@ -16,123 +16,127 @@ class StatisticView extends StatefulWidget {
 
 class _StatisticViewState extends State<StatisticView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+  bool localIsLoading = false;
+
 
   @override
   Widget build(BuildContext context) {
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
 
-    final state = Provider.of<State_Provider>(context);
-    final isLoading = state.getLoadingState();
+    final stateData = Provider.of<Loading_State_Provider>(context);
+    bool isLoading = stateData.getLoadingState;
+
 
     switch (isLoading) {
       case true:
         return const Center(child: CircularProgressIndicator());
       default:
-        return records.isNotEmpty
-            ? RefreshIndicator(
-                onRefresh: () {
-                  Provider.of<State_Provider>(context, listen: false)
-                      .changeLoading();
-                  return refreshRecords(context);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListView.builder(
-                      itemCount: records.length,
-                      itemBuilder: (context, id) {
-                        return Dismissible(
-                          key: UniqueKey(),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) {
-                            recordData.removeRecord(records.length - id - 1);
-                          },
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            child:
-                                const Icon(Icons.delete, color: Colors.white),
-                          ),
-                          confirmDismiss: (direction) {
-                            return showDialog(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                      title: const Text("Delete record"),
-                                      content: const Text(
-                                          "Are you sure you want to delete this record"),
-                                      actions: <Widget>[
-                                        TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop(
-                                                  false); //return false so that confirmDismiss don't delete the record
-                                            },
-                                            child: const Text("Cancel")),
-                                        TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop(
-                                                  true); //return true so that confirmDismiss delete the record
-                                            },
-                                            child: const Text(
-                                              "Delete",
-                                              style:
-                                                  TextStyle(color: Colors.red),
-                                            ))
-                                      ],
-                                    ));
-                          },
-                          child: ListTile(
-                            onTap: () {
-                              detail_edit(records, records.length - id - 1);
-                            },
-                            onLongPress: () {
-                              print(
-                                  'length: ${records.length}\nid = $id\nrecord[${records.length - id - 1}]');
-                            },
-                            leading: buildLeading(
-                                records[records.length - id - 1].by),
-                            subtitle:
-                                Text(records[records.length - id - 1].date),
-                            title: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  records[records.length - id - 1].name,
-                                  style: const TextStyle(
-                                      fontSize: 20.0,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 5.0),
-                                Text(
-                                    "-${currencyFormat.format(records[records.length - id - 1].money)}",
-                                    style: const TextStyle(
-                                        fontSize: 16.0, color: Colors.purple)),
-                              ],
+        return RefreshIndicator(
+            onRefresh: () {
+              stateData.changeState();
+              localIsLoading = true;
+              print('Refresh:\nisLoading: ${stateData.getLoadingState}\nLocal Loading state: $localIsLoading');
+              return refreshRecords(context, stateData).then((value) {
+                print('RES: $localIsLoading');
+              });
+            },
+            child: records.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListView.builder(
+                        itemCount: records.length,
+                        itemBuilder: (context, id) {
+                          return Dismissible(
+                            key: UniqueKey(),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              child:
+                              const Icon(Icons.delete, color: Colors.white),
                             ),
-                            trailing: (() {
-                              switch (records[records.length - id - 1].type) {
-                                case 2:
-                                  return const Icon(Icons.home_work_outlined);
-                                case 1:
-                                  return const Icon(Icons.fastfood_outlined);
-                              }
-                            })(),
-                          ),
-                        );
-                      }),
-                ),
-              )
-            : Container(
-                alignment: Alignment.center,
-                child: const Text(
-                  'No expense',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              );
+                            confirmDismiss: (direction) {
+                              return showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text("Delete record"),
+                                    content: const Text(
+                                        "Are you sure you want to delete this record"),
+                                    actions: <Widget>[
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(
+                                                false); //return false so that confirmDismiss don't delete the record
+                                          },
+                                          child: const Text("Cancel")),
+                                      TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(
+                                                true); //return true so that confirmDismiss delete the record
+                                          },
+                                          child: const Text(
+                                            "Delete",
+                                            style: TextStyle(
+                                                color: Colors.red),
+                                          ))
+                                    ],
+                                  ));
+                            },
+                            onDismissed: (_) {
+                              // stateData.changeState();
+                              // print('Start dismiss: ${stateData.getLoadingState}');
+                              dismissRecord(recordData, stateData, records.length - id - 1);
+                            },
+                            child: ListTile(
+                              onTap: () {
+                                detail_edit(records, records.length - id - 1);
+                              },
+                              leading: buildLeading(
+                                  records[records.length - id - 1].by),
+                              subtitle:
+                                  Text(records[records.length - id - 1].date),
+                              title: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    records[records.length - id - 1].name,
+                                    style: const TextStyle(
+                                        fontSize: 20.0,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 5.0),
+                                  Text(
+                                      "-${currencyFormat.format(records[records.length - id - 1].money)}",
+                                      style: const TextStyle(
+                                          fontSize: 16.0,
+                                          color: Colors.purple)),
+                                ],
+                              ),
+                              trailing: (() {
+                                switch (records[records.length - id - 1].type) {
+                                  case 2:
+                                    return const Icon(Icons.home_work_outlined);
+                                  case 1:
+                                    return const Icon(Icons.fastfood_outlined);
+                                }
+                              })(),
+                            ),
+                          );
+                        }),
+                  )
+                : Container(
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'No expenses',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ));
     }
   }
 
@@ -350,8 +354,43 @@ class _StatisticViewState extends State<StatisticView> {
     }
   }
 
-  Future<void> refreshRecords(BuildContext context) async {
-    await Provider.of<Record_Provider>(context, listen: false).fetchRecord();
-    Provider.of<State_Provider>(context, listen: false).changeLoading();
+  // Future<void> refreshRecords(BuildContext context, Loading_State_Provider stateData) async {
+  //   await Provider.of<Record_Provider>(context, listen: false)
+  //       .fetchRecord()
+  //       .then((_) {
+  //
+  //     stateData.changeState();
+  //     localIsLoading = false;
+  //
+  //     print('Loading state: ${stateData.getLoadingState}\nLocal Loading State: $localIsLoading');
+  //   }).catchError((err) {
+  //     print('Refresh error: $err');
+  //   });
+  // }
+
+  Future<void> dismissRecord(Record_Provider recordData, Loading_State_Provider stateData, int id) async {
+      recordData
+          .removeRecord(id)
+          .then((_) {
+        stateData.changeState();
+        print('isLoading: ${stateData.getLoadingState} - delete successfully');
+      }).catchError((err) {
+        stateData.changeState();
+        print('isLoading: ${stateData.getLoadingState} - delete failed');
+      });
+      stateData.changeState();
   }
+}
+
+Future<void> refreshRecords(BuildContext context, Loading_State_Provider stateData) async {
+  await Provider.of<Record_Provider>(context, listen: false)
+      .fetchRecord()
+      .then((_) {
+
+    stateData.changeState();
+
+    print('Loading state: ${stateData.getLoadingState}');
+  }).catchError((err) {
+    print('Refresh error: $err');
+  });
 }

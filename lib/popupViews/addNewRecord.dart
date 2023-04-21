@@ -157,7 +157,6 @@ class _addNewRecordViewState extends State<addNewRecordView> {
   // }
 
   Widget build(BuildContext context) {
-    final state = Provider.of<State_Provider>(context, listen: false);
 
     return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -272,9 +271,7 @@ class _addNewRecordViewState extends State<addNewRecordView> {
             Center(
               child: ElevatedButton(
                   onPressed: () {
-                    state.changeLoading();
                     submit_done().then((_) {
-                      state.changeLoading();
                     }).catchError((err) {
                       // Navigator.of(context).pop();
                       print("ERROR HERE 2: $err");
