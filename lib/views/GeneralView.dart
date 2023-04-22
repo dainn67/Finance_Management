@@ -103,6 +103,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
       });
 
   Future<void> debug() async{
+    print('HI');
     var uri = Uri.parse(
         'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
     final res = await http.post(uri,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phongs_app/data.dart';
+import 'package:phongs_app/views/AuthenScreen.dart';
 import 'package:phongs_app/views/GeneralView.dart';
 import 'package:provider/provider.dart';
 
@@ -26,15 +27,13 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (context) => Record_Provider()),
         ChangeNotifierProvider(create: (context) => Loading_State_Provider()),
+        ChangeNotifierProvider.value(value: Authen_Provider())
       ],
-      child: const MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home:
-              // LoginPage()
-              // HomePageView()
-              GeneralScreen()
-              // PlannedPayment()
-          ),
+      child: Consumer<Authen_Provider>(
+        builder: (context, auth, _) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: auth.isAuth ? const GeneralScreen() : const AuthenView()),
+      ),
     );
   }
 }

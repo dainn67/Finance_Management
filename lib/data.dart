@@ -1,7 +1,6 @@
 //categories selector
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 int cId = 0;
@@ -157,5 +156,84 @@ class Loading_State_Provider with ChangeNotifier {
   void changeState() {
     _isLoading = !_isLoading;
     notifyListeners();
+  }
+}
+
+class Authen_Provider with ChangeNotifier {
+  String? _token;
+  DateTime _expiryDate = DateTime.now();
+  String? _userId;
+
+  bool get isAuth {
+    return token != null;
+  }
+
+  String? get token {
+    if (_expiryDate != null &&
+        _expiryDate.isAfter(DateTime.now()) &&
+        _token != null) {
+      return _token;
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> signUp(String email, String password) async {
+    print('Email: $email\nPassword: $password');
+
+    final url = Uri.parse(
+        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBaSwfOnmThBgIUlbE7cM4e8FylZYpcF5Y');
+    try {
+      final response = await http.post(url,
+          body: json.encode({
+            'email': email,
+            'password': password,
+            'returnSecureToken': true
+          }));
+      final responseData = json.decode(response.body);
+      if (responseData['error'] != null) {
+        throw responseData['error']['message'];
+      } else {
+        _token = responseData['idToken'];
+        _userId = responseData['localId'];
+        _expiryDate = DateTime.now()
+            .add(Duration(seconds: int.parse(responseData['expiresIn'])));
+        notifyListeners();
+      }
+    } catch (err) {
+      rethrow;
+    }
+  }
+
+  Future<void> signIn(String email, String password) async {
+    print('Email: $email\nPassword: $password');
+
+    final url = Uri.parse(
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBaSwfOnmThBgIUlbE7cM4e8FylZYpcF5Y');
+
+    final response = await http.post(url,
+        body: json.encode(
+            {'email': email, 'password': password, 'returnSecureToken': true}));
+
+    try {
+      final response = await http.post(url,
+          body: json.encode(
+              {'email': email, 'password': password, 'returnSecureToken': true}));
+      final responseData = json.decode(response.body);
+
+      if (responseData['error'] != null) {
+        throw responseData['error']['message'];
+      } else {
+        _token = responseData['idToken'];
+        _userId = responseData['localId'];
+        _expiryDate = DateTime.now()
+            .add(Duration(seconds: int.parse(responseData['expiresIn'])));
+        notifyListeners();
+      }
+    } catch (err) {
+      rethrow;
+    }
+
+    print(json.decode(response.body));
   }
 }
