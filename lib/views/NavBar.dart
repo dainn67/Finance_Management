@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:phongs_app/views/GeneralView.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import '../data.dart';
@@ -25,8 +26,8 @@ class _NavBarViewState extends State<NavBarView> {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName:
-                const Text("Dai. Nguyen", style: TextStyle(color: Colors.white)),
+            accountName: const Text("Dai. Nguyen",
+                style: TextStyle(color: Colors.white)),
             accountEmail: const Text("nguyendai060703@gmail.com",
                 style: TextStyle(color: Colors.white)),
             currentAccountPicture: CircleAvatar(
@@ -51,8 +52,8 @@ class _NavBarViewState extends State<NavBarView> {
           ListTile(
             leading: const Icon(Icons.question_mark),
             title: const Text("User guide"),
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => UserGuide())),
+            onTap: () => Navigator.push(
+                context, MaterialPageRoute(builder: (context) => UserGuide())),
           ),
           ListTile(
               leading: const Icon(Icons.settings),
@@ -67,6 +68,12 @@ class _NavBarViewState extends State<NavBarView> {
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const AboutUs())),
           ),
+          ListTile(
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text("Log out"),
+              onTap: () {
+                logOut();
+              }),
         ],
       ),
     );
@@ -117,68 +124,50 @@ class _NavBarViewState extends State<NavBarView> {
       );
 
   void resetThisMonth() => showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Confirm action'),
-        content: const Text('Are you sure you want to reset this month\'s data ?'),
-        actions: <Widget>[
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Agree'),
-            onPressed: () async {
-              setState(() {
-                int tmpFood = 0, tmpStationery = 0;
-                int thisMonth = DateTime.now().month;
-                int thisYearHashed = DateTime.now().year % 2020 - 3;
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Confirm action'),
+            content: const Text(
+                'Are you sure you want to reset this month\'s data ?'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('Agree'),
+                onPressed: () async {
+                  setState(() {
+                    int tmpFood = 0, tmpStationery = 0;
+                    int thisMonth = DateTime.now().month;
+                    int thisYearHashed = DateTime.now().year % 2020 - 3;
 
-                //remove records of that month
-                // for(int i=records.length-1; i>=0; i--){
-                //   List<String> dateParts = records[i]["date"].split('/');
-                //   int month = int.parse(dateParts[1]);
-                //   int year = int.parse(dateParts[2]) % 2020 - 3;
-                //   print("CUR MONTH: $month CUR YEAR: $year");
-                //   if(month == thisMonth && year == thisYearHashed){
-                //     if(records[i]["type"] == 1) {
-                //       tmpFood += int.parse(records[i]["money"].toString());
-                //     } else {
-                //       tmpStationery += int.parse(records[i]["money"].toString());
-                //     }
-                //     print('DELETE ${records[i]}');
-                //     records.remove(records[i]);
-                //   }
-                // }
+                    totalFood -= tmpFood;
+                    totalStationery -= tmpStationery;
 
-                //refund the money of that month
+                    print("NEW FOOD: $totalFood NEW STA $totalStationery");
 
-                totalFood -= tmpFood;
-                totalStationery -= tmpStationery;
+                    check[thisYearHashed][thisMonth] = 0;
+                    house[thisYearHashed][thisMonth] = 500000;
+                    electric[thisYearHashed][thisMonth] = 0;
+                    water[thisYearHashed][thisMonth] = 0;
+                    motorFee[thisYearHashed][thisMonth] = 80000;
+                    for (int k = 0; k <= 4; k++) {
+                      moneyToPayy[thisYearHashed][thisMonth][k] = 0;
+                      saved[thisYearHashed][thisMonth][k] = 0;
+                    }
+                  });
 
-                print("NEW FOOD: $totalFood NEW STA $totalStationery");
-
-                check[thisYearHashed][thisMonth] = 0;
-                house[thisYearHashed][thisMonth] = 500000;
-                electric[thisYearHashed][thisMonth] = 0;
-                water[thisYearHashed][thisMonth] = 0;
-                motorFee[thisYearHashed][thisMonth] = 80000;
-                for (int k = 0; k <= 4; k++) {
-                  moneyToPayy[thisYearHashed][thisMonth][k] = 0;
-                  saved[thisYearHashed][thisMonth][k] = 0;
-                }
-              });
-
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
-    },
-  );
 
   void help() => showDialog(
         context: context,
@@ -215,4 +204,30 @@ class _NavBarViewState extends State<NavBarView> {
           );
         },
       );
+
+  void logOut() => showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirm action'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Agree'),
+            onPressed: () {
+              Provider.of<Authen_Provider>(context, listen: false).logout();
+              Navigator.of(context).pop();
+              // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const GeneralScreen()));
+            },
+          ),
+        ],
+      );
+    },
+  );
 }

@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:phongs_app/data.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 class SummaryView extends StatefulWidget {
   const SummaryView({Key? key}) : super(key: key);
@@ -206,8 +203,6 @@ class _SummaryViewState extends State<SummaryView> {
             moneyToPayy[hashYear(displayYear)][displayMonth][i];
       }
     });
-    final fileSaved = await _localSaved;
-    fileSaved.writeAsString(jsonEncode(saved));
   }
 
   Future<void> computeAll() async {
@@ -258,32 +253,6 @@ class _SummaryViewState extends State<SummaryView> {
         check[hashYear(displayYear)][displayMonth] = 0;
       });
     }
-
-    final fileSummary = await _localTotalSummary;
-    fileSummary.writeAsString(jsonEncode(moneyToPayy));
-
-    final fileCheck = await _localCheck;
-    fileCheck.writeAsString(jsonEncode(check));
-  }
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
-
-  Future<File> get _localSaved async {
-    final path = await _localPath;
-    return File('$path/saved.txt');
-  }
-
-  Future<File> get _localTotalSummary async {
-    final path = await _localPath;
-    return File('$path/summary.txt');
-  }
-
-  Future<File> get _localCheck async {
-    final path = await _localPath;
-    return File('$path/check.txt');
   }
 }
 

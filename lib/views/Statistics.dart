@@ -1,6 +1,5 @@
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../data.dart';
@@ -16,7 +15,6 @@ class StatisticView extends StatefulWidget {
 
 class _StatisticViewState extends State<StatisticView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
-  bool localIsLoading = false;
 
 
   @override
@@ -35,11 +33,8 @@ class _StatisticViewState extends State<StatisticView> {
         return RefreshIndicator(
             onRefresh: () {
               stateData.changeState();
-              localIsLoading = true;
-              print('Refresh:\nisLoading: ${stateData.getLoadingState}\nLocal Loading state: $localIsLoading');
-              return refreshRecords(context, stateData).then((value) {
-                print('RES: $localIsLoading');
-              });
+              print('START REFRESH:\nisLoading: ${stateData.getLoadingState}');
+              return refreshRecords(context, stateData);
             },
             child: records.isNotEmpty
                 ? Padding(
@@ -160,83 +155,83 @@ class _StatisticViewState extends State<StatisticView> {
         String date = records[i].date;
         return currentRecordView(i, type, buyer, people, date);
       });
-
-  void detailAndEdit(List<Record> records, int id) => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Detail'),
-            content: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.5,
-              width: MediaQuery.of(context).size.height * 0.9,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    title: Text(records[id].name,
-                        style: GoogleFonts.firaSans(
-                            fontSize: 22, fontWeight: FontWeight.bold)),
-                  ),
-                  ListTile(
-                    title: Text("Amount",
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(currencyFormat.format(records[id].money),
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                  ),
-                  ListTile(
-                    title: Text("Purchaser",
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(getBuyer(records[id].by),
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                  ),
-                  ListTile(
-                    title: Text("Users",
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                    subtitle: Text(getPeople(records[id].people)),
-                    trailing: Text(getNumberOfPeople(records[id].people)),
-                  ),
-                  ListTile(
-                    title:
-                        Text("Date", style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(records[id].date,
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                  ),
-                  ListTile(
-                    title: Text("Each pay",
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                    trailing: Text(
-                        currencyFormat.format(getEqualMoney(
-                            records[id].money, records[id].people)),
-                        style: GoogleFonts.firaSans(fontSize: 22)),
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Change'),
-                onPressed: () {
-                  // _electric.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () async {
-                  // electric[hashYear(displayYear)][displayMonth] = int.parse(
-                  //     _electric.text
-                  //         .replaceAll(RegExp(r'\.\d+'), '')
-                  //         .replaceAll(',', ''));
-                  // final fileElectric = await _localElectric;
-                  // fileElectric.writeAsStringSync(jsonEncode(electric));
-                  // _electric.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+  //
+  // void detailAndEdit(List<Record> records, int id) => showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: const Text('Detail'),
+  //           content: SizedBox(
+  //             height: MediaQuery.of(context).size.height * 0.5,
+  //             width: MediaQuery.of(context).size.height * 0.9,
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 ListTile(
+  //                   title: Text(records[id].name,
+  //                       style: GoogleFonts.firaSans(
+  //                           fontSize: 22, fontWeight: FontWeight.bold)),
+  //                 ),
+  //                 ListTile(
+  //                   title: Text("Amount",
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                   trailing: Text(currencyFormat.format(records[id].money),
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                 ),
+  //                 ListTile(
+  //                   title: Text("Purchaser",
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                   trailing: Text(getBuyer(records[id].by),
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                 ),
+  //                 ListTile(
+  //                   title: Text("Users",
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                   subtitle: Text(getPeople(records[id].people)),
+  //                   trailing: Text(getNumberOfPeople(records[id].people)),
+  //                 ),
+  //                 ListTile(
+  //                   title:
+  //                       Text("Date", style: GoogleFonts.firaSans(fontSize: 22)),
+  //                   trailing: Text(records[id].date,
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                 ),
+  //                 ListTile(
+  //                   title: Text("Each pay",
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                   trailing: Text(
+  //                       currencyFormat.format(getEqualMoney(
+  //                           records[id].money, records[id].people)),
+  //                       style: GoogleFonts.firaSans(fontSize: 22)),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           actions: <Widget>[
+  //             TextButton(
+  //               child: const Text('Change'),
+  //               onPressed: () {
+  //                 // _electric.clear();
+  //                 Navigator.of(context).pop();
+  //               },
+  //             ),
+  //             TextButton(
+  //               child: const Text('OK'),
+  //               onPressed: () async {
+  //                 // electric[hashYear(displayYear)][displayMonth] = int.parse(
+  //                 //     _electric.text
+  //                 //         .replaceAll(RegExp(r'\.\d+'), '')
+  //                 //         .replaceAll(',', ''));
+  //                 // final fileElectric = await _localElectric;
+  //                 // fileElectric.writeAsStringSync(jsonEncode(electric));
+  //                 // _electric.clear();
+  //                 Navigator.of(context).pop();
+  //               },
+  //             ),
+  //           ],
+  //         );
+  //       },
+  //     );
 
   String getBuyer(int i) {
     switch (i) {
@@ -354,20 +349,6 @@ class _StatisticViewState extends State<StatisticView> {
     }
   }
 
-  // Future<void> refreshRecords(BuildContext context, Loading_State_Provider stateData) async {
-  //   await Provider.of<Record_Provider>(context, listen: false)
-  //       .fetchRecord()
-  //       .then((_) {
-  //
-  //     stateData.changeState();
-  //     localIsLoading = false;
-  //
-  //     print('Loading state: ${stateData.getLoadingState}\nLocal Loading State: $localIsLoading');
-  //   }).catchError((err) {
-  //     print('Refresh error: $err');
-  //   });
-  // }
-
   Future<void> dismissRecord(Record_Provider recordData, Loading_State_Provider stateData, int id) async {
       recordData
           .removeRecord(id)
@@ -384,7 +365,7 @@ class _StatisticViewState extends State<StatisticView> {
 
 Future<void> refreshRecords(BuildContext context, Loading_State_Provider stateData) async {
   await Provider.of<Record_Provider>(context, listen: false)
-      .fetchRecord()
+      .fetchRecord(true)
       .then((_) {
 
     stateData.changeState();

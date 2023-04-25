@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:phongs_app/views/DashBoard.dart';
 import 'package:phongs_app/views/Housing.dart';
 import 'package:phongs_app/views/Statistics.dart';
 import 'package:phongs_app/views/Summary.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../popupViews/addNewRecord.dart';
 import '../data.dart';
@@ -18,18 +16,10 @@ class GeneralScreen extends StatefulWidget {
 }
 
 class _GeneralScreenState extends State<GeneralScreen> {
-  final List<Widget> pages = [
-    const DashBoardView(),
-    const StatisticView(),
-    const HousingView(),
-    const SummaryView()
-  ];
-
-  int selectedId = 0;
 
   @override
   void initState() {
-    Provider.of<Record_Provider>(context, listen: false).fetchRecord();
+    Provider.of<Record_Provider>(context, listen: false).fetchRecord(true);
     super.initState();
   }
 
@@ -47,7 +37,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
               ),
             ],
             elevation: 0.0,
-            title: const Text("Welcome back, Đại"),
+            title: const Text('Welcome back, boss'),
             bottom: const TabBar(
               tabs: <Widget>[
                 Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
@@ -60,13 +50,13 @@ class _GeneralScreenState extends State<GeneralScreen> {
           body:
               // pages[selectedId],
               const TabBarView(
-            children: <Widget>[
-              DashBoardView(),
-              StatisticView(),
-              HousingView(),
-              SummaryView()
-            ],
-          ),
+                children: <Widget>[
+                  DashBoardView(),
+                  StatisticView(),
+                  HousingView(),
+                  SummaryView()
+                ],
+              ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               addNewRecord();
@@ -76,13 +66,6 @@ class _GeneralScreenState extends State<GeneralScreen> {
             child: const Icon(Icons.add),
           ),
         ));
-  }
-
-  void selectCategories(int id) {
-    //id is automatically passed
-    setState(() {
-      selectedId = id;
-    });
   }
 
   void addNewRecord() => showModalBottomSheet(
@@ -102,29 +85,7 @@ class _GeneralScreenState extends State<GeneralScreen> {
         return const addNewRecordView();
       });
 
-  Future<void> debug() async{
-    print('HI');
-    var uri = Uri.parse(
-        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-    final res = await http.post(uri,
-        body: json.encode({
-          'name': 'Dummy name',
-          'money': 200000,
-          'date': '20/4/2023',
-          'by': 1,
-          'type': 2,
-          'people': '11111',
-        }));
-
-    var record = Record(
-        json.decode(res.body)['name'],    //get the unique id back and use as id of record
-        'Dummy name',
-        200000,
-        '20/4/2023',
-        1,
-        2,
-        '11111');
-
-    Provider.of<Record_Provider>(context, listen: false).addRecord(record);
+  Future<void> debug() async {
+    print('START DEBUG');
   }
 }

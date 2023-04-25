@@ -15,6 +15,7 @@ class DashBoardView extends StatefulWidget {
 class _DashBoardViewState extends State<DashBoardView> {
   var currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
+
   @override
   Widget build(BuildContext context) {
     final recordData = Provider.of<Record_Provider>(context);

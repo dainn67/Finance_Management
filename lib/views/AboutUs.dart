@@ -7,7 +7,7 @@ class AboutUs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Thông tin ứng dụng"),
+          title: const Text("App's information"),
         ),
         body: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -16,16 +16,16 @@ class AboutUs extends StatelessWidget {
               ListTile(
                 // leading: Image.asset("assets/images/wallet.png"),
                 title: Text(
-                    "Ứng dụng quản lí chi tiêu\n\nby Dai. Nguyen Nhu\n\nBản hoàn thiện 1.1.2",
+                    "YOUR EXPENSE TRACKER\n\nby Dai. Nguyen Nhu\nVersion 2.1.0",
                     style: TextStyle(fontSize: 20.0)),
               ),
               SizedBox(height: 20.0),
               ListTile(
-                title: Text("Tất cả các tính năng trong 1 ứng dụng",
+                title: Text("All of your purchases in one small app",
                     style: TextStyle(fontSize: 24.0)),
               ),
               ListTile(
-                title: Text("Giúp theo dõi các chi tiêu hàng tháng, tránh thất thoát tình bạn :)",
+                title: Text("Help tracking what you purchase daily, creating budget targets, and a lot more",
                     style: TextStyle(fontSize: 20.0)),
               ),
             ],

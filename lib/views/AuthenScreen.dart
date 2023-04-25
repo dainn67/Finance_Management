@@ -16,11 +16,19 @@ class _AuthenViewState extends State<AuthenView> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
 
-  String passwordErrorText = '';
-  String cfpasswordErrorText = '';
+  String? accountErrorText;
+  String? passwordErrorText;
+  String? cfpasswordErrorText;
 
   late String email;
   late String password;
+
+  bool accountValid = false;
+  bool passwordValid = false;
+  bool cfPasswordValid = false;
+
+  bool canSignIn = false;
+  bool canSignUp = false;
 
   @override
   void dispose() {
@@ -36,216 +44,206 @@ class _AuthenViewState extends State<AuthenView> {
         resizeToAvoidBottomInset: false,
         backgroundColor: Colors.grey[300],
         body: SafeArea(
-          child: Center(
-              child:
-                  // state == 1 ? SignInView() : SignUpView()
-                  Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Welcome Back',
-                  style: GoogleFonts.bebasNeue(
-                      fontWeight: FontWeight.bold, fontSize: 50)),
-              const SizedBox(height: 10),
-              Text('to Expense Tracker',
-                  style: GoogleFonts.bebasNeue(fontSize: 25)),
-              const SizedBox(height: 50),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 34),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: TextField(
-                      controller: accountController,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        labelText: 'Your account',
-                        // errorText: accountController
-                      ),
-                      onChanged: (val) {
-                        print('ACCOUNT VALUE: $val');
-                        email = val;
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 34),
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: TextField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                          border: InputBorder.none,
-                          labelText: 'Password',
-                          errorText: passwordErrorText.isNotEmpty
-                              ? passwordErrorText
-                              : null),
-                      onChanged: (val) {
-                        setState(() {
-                          print('PASS VALUE: $val');
-                          if (val.isEmpty) {
-                            passwordErrorText = 'Please enter a password';
-                          } else if (val.length < 5) {
-                            passwordErrorText = 'Password is too short';
-                          } else {
-                            passwordErrorText = '';
-                            password = val;
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              state == 2
-                  ? Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 34),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                border: Border.all(color: Colors.white),
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 20.0),
-                              child: TextField(
-                                controller: confirmPasswordController,
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    labelText: 'Confirm password',
-                                    errorText: cfpasswordErrorText.isNotEmpty
-                                        ? cfpasswordErrorText
-                                        : null),
-                                onChanged: (val) {
-                                  setState(() {
-                                    if (val.isEmpty) {
-                                      cfpasswordErrorText =
-                                          'Please confirm your password';
-                                    } else if (val != passwordController.text) {
-                                      cfpasswordErrorText =
-                                          'Unmatched password';
-                                    } else {
-                                      cfpasswordErrorText = '';
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox(height: 0),
-              const SizedBox(height: 50),
-              GestureDetector(
-                onTap: signIn_Up,
+            child: Center(
+                child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Welcome Back',
+                style: GoogleFonts.bebasNeue(
+                    fontWeight: FontWeight.bold, fontSize: 50)),
+            const SizedBox(height: 5),
+            Text('to Expense Tracker',
+                style: GoogleFonts.bebasNeue(fontSize: 25)),
+            // state == 1 ? SignInView() : SignUpView(),
+            const SizedBox(height: 50),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 34),
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    border: Border.all(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 34.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(12),
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: TextField(
+                    controller: accountController,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      labelText: 'Your account',
+                      errorText: accountErrorText,
                     ),
-                    child: Center(
-                      child: state == 1
-                          ? const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18),
-                            )
-                          : const Text('Sign Up',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18)),
-                    ),
+                    onChanged: (val) {
+                      accountValid = checkValidAccount(val);
+                      if (accountValid && passwordValid) {
+                        setState(() {
+                          canSignIn = true;
+                        });
+                        if (cfPasswordValid) {
+                          setState(() {
+                            canSignUp = true;
+                          });
+                        }
+                      } else {
+                        setState(() {
+                          canSignIn = false;
+                          canSignUp = false;
+                        });
+                      }
+                    },
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
-              state == 1
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Don\'t have an account?'),
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              if (state == 1)
-                                state = 2;
-                              else
-                                state = 1;
-                            });
-                          },
-                          child: const Text(
-                            ' Sign up now',
-                            style: TextStyle(
-                                color: Colors.blueAccent,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        )
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Already an user?'),
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              if (state == 1)
-                                state = 2;
-                              else
-                                state = 1;
-                            });
-                          },
-                          child: const Text(
-                            ' Sign in here',
-                            style: TextStyle(
-                                color: Colors.blueAccent,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        )
-                      ],
-                    ),
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    print('IS AUTH: ${Provider.of<Authen_Provider>(context, listen: false).isAuth}');
-                  });
-                },
-                child: const Text(
-                  ' debug',
-                  style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 34),
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    border: Border.all(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                        border: InputBorder.none,
+                        labelText: 'Password',
+                        errorText: passwordErrorText),
+                    onChanged: (val) {
+                      passwordValid = checkValidPassword(val);
+                      if (accountValid && passwordValid) {
+                        setState(() {
+                          canSignIn = true;
+                        });
+                        if (cfPasswordValid) {
+                          setState(() {
+                            canSignUp = true;
+                          });
+                        }
+                      } else {
+                        setState(() {
+                          canSignIn = false;
+                          canSignUp = false;
+                        });
+                      }
+                    },
+                  ),
                 ),
-              )
-            ],
-          )),
-        ));
+              ),
+            ),
+            const SizedBox(height: 10),
+            state == 2
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 34),
+                    child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            border: Border.all(color: Colors.white),
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20.0),
+                          child: TextField(
+                            controller: confirmPasswordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                                border: InputBorder.none,
+                                labelText: 'Confirm password',
+                                errorText: cfpasswordErrorText),
+                            onChanged: (val) {
+                              cfPasswordValid = checkValidCFPassword(val);
+                              if (accountValid &&
+                                  passwordValid &&
+                                  cfPasswordValid) {
+                                setState(() {
+                                  canSignUp = true;
+                                });
+                              } else {
+                                setState(() {
+                                  canSignUp = false;
+                                });
+                              }
+                            },
+                          ),
+                        )))
+                : const SizedBox(height: 0),
+            const SizedBox(height: 90),
+            getButton(),
+            const SizedBox(height: 15),
+            state == 1
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Don\'t have an account?'),
+                      InkWell(
+                        onTap: () {
+                          accountController.clear();
+                          passwordController.clear();
+                          confirmPasswordController.clear();
+                          setState(() {
+                            state = 2;
+                          });
+                        },
+                        child: const Text(
+                          ' Sign up now',
+                          style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Already an user?'),
+                      InkWell(
+                        onTap: () {
+                          accountController.clear();
+                          passwordController.clear();
+                          confirmPasswordController.clear();
+                          setState(() {
+                            state = 1;
+                          });
+                        },
+                        child: const Text(
+                          ' Sign in',
+                          style: TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    ],
+                  ),
+                  InkWell(
+                    onTap: () {
+                      final data = Provider.of<Authen_Provider>(context, listen: false);
+                      final isAuth = data.getIsAuth;
+                      final token = data.token;
+                      print('IS AUTH (DEBUG): $isAuth');
+                      print('TOKEN (DEBUG): $token');
+                    },
+                    child: const Text(
+                      'DEBUG',
+                      style: TextStyle(
+                          color: Colors.blueAccent,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+            const SizedBox(height: 40),
+          ],
+        ))));
   }
 
   void signIn_Up() {
-    if (state == 2) {
+    if (state == 1 && canSignIn) {
+      print('Can sign in: $canSignIn');
+      Provider.of<Authen_Provider>(context, listen: false)
+          .signIn(email, password);
+    }
+    if (state == 2 && canSignUp) {
+      print('Can sign up: $canSignUp');
       try {
         Provider.of<Authen_Provider>(context, listen: false)
             .signUp(email, password)
@@ -262,16 +260,16 @@ class _AuthenViewState extends State<AuthenView> {
             displaySnackBar('Can not find any users using that email');
           }
         });
+        setState(() {
+          state == 1;   //go back to SignIn view
+        });
       } catch (err) {
         print('Cannot authenticate: $err');
       }
-    } else {
-      Provider.of<Authen_Provider>(context, listen: false)
-          .signIn(email, password);
     }
   }
 
-  void displaySnackBar(String text){
+  void displaySnackBar(String text) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(text),
         duration: const Duration(seconds: 2),
@@ -281,5 +279,100 @@ class _AuthenViewState extends State<AuthenView> {
             ScaffoldMessenger.of(context).removeCurrentSnackBar();
           },
         )));
+  }
+
+  bool checkValidAccount(String val) {
+    print('ACCOUNT VALUE: $val');
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (val.isEmpty) {
+      accountErrorText = 'Please enter your account';
+      return false;
+    } else {
+      if (emailRegex.hasMatch(val)) {
+        accountErrorText = null;
+        email = val;
+        return true;
+      } else {
+        accountErrorText = 'Invalid email';
+        return false;
+      }
+    }
+  }
+
+  bool checkValidPassword(String val) {
+    print('PASS VALUE: $val');
+    if (val.isEmpty) {
+      passwordErrorText = 'Please enter a password';
+      return false;
+    } else if (val.length < 5) {
+      passwordErrorText = 'Password is too short';
+      return false;
+    } else {
+      passwordErrorText = null;
+      password = val;
+      return true;
+    }
+  }
+
+  bool checkValidCFPassword(String val) {
+    print('CF PASSWORD VAL: $val');
+    if (val.isEmpty) {
+      cfpasswordErrorText = 'Please confirm your password';
+      return false;
+    } else {
+      if (val != passwordController.text) {
+        cfpasswordErrorText = 'Unmatched password';
+        return false;
+      } else {
+        cfpasswordErrorText = null;
+        return true;
+      }
+    }
+  }
+
+  Widget getButton() {
+    return state == 1
+        ? GestureDetector(
+            onTap: canSignIn ? signIn_Up : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 34.0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: canSignIn ? Colors.blue : Colors.grey,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                    child: Text(
+                  'Sign In',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
+                )),
+              ),
+            ),
+          )
+        : GestureDetector(
+            onTap: canSignUp ? signIn_Up : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 34.0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: canSignUp ? Colors.blue : Colors.grey,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                    child: Text(
+                  'Sign Up',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
+                )),
+              ),
+            ),
+          );
   }
 }

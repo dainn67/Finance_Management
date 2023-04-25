@@ -439,163 +439,17 @@ class _addNewRecordViewState extends State<addNewRecordView> {
         }
       }
 
-      if (type == 2) {
-        totalStationery += money;
-      } else {
-        totalFood += money;
-      }
-
-      computeExpenses(money, int.parse(getNumberOfPeople(_people)), _people,
-          buyer, _selectedDate.month, _selectedDate.year);
-
-      //SEND HTTP REQUEST
-      var uri = Uri.parse(
-          'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-      final res = await http.post(uri,
-          body: json.encode({
-            'name': cname.text.toString(),
-            'money': money,
-            'date': '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-            'by': buyer,
-            'type': type,
-            'people': _people,
-          }));
-
-      var record = Record(
-          json.decode(res.body)['name'],    //get the unique id back and use as id of record
-          cname.text.toString(),
-          money,
-          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-          buyer,
-          type,
-          _people);
-
-      data.addRecord(record);
-
-      //   // json.decode(res.body) is recommended to be used as id of record, so that when user need to DELETE
-      //   // a record, we need to use that id to identify
+      //SEND HTTP REQUEST & ADD RECORD LOCALLY
+      final date = '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
+      data.addRecord(cname.text, money, date, buyer, type, _people);
 
       cname.clear();
       cmoney.clear();
-      // Navigator.of(context).pop();
     } catch (err){
       print(err);
       rethrow;
     } finally {
       Navigator.of(context).pop();
     }
-  }
-
-  void computeExpenses(int money, int numberOfPeople, String people, int buyer,
-      int month, int year) {
-    //1:2023  2:2024  3:2025  4:2026 // tháng tương tự số // 1-Phong 2-Tùng  3-Lâm  4-Hiển
-    //buyer: 1-P  2-K 3-T 4-L 5-H
-    int hashYear = 0;
-    switch (year) {
-      case 2023:
-        hashYear = 0;
-        break;
-      case 2024:
-        hashYear = 1;
-        break;
-      case 2025:
-        hashYear = 2;
-        break;
-      case 2026:
-        hashYear = 3;
-        break;
-    }
-
-    //people là 1 string 0-based, moneyToPayy[hashYear [month]là 1-based
-    if (buyer == 2 ||
-        (buyer == 1 && people[0] == '1') ||
-        people[buyer - 1] == '1') {
-      //nếu người mua có ăn
-      if (buyer == 2) {
-        //Khanh mua
-        if (people[0] == '1')
-          moneyToPayy[hashYear][month][1] +=
-              getEqualMoney(money, numberOfPeople);
-        for (int i = 2; i <= 4; i++)
-          if (people[i] == '1')
-            moneyToPayy[hashYear][month][i] +=
-                getEqualMoney(money, numberOfPeople);
-      } else if (buyer == 1) {
-        //Phong mua
-        moneyToPayy[hashYear][month][buyer] -=
-            getEqualMoney(money, numberOfPeople) * (numberOfPeople - 1);
-        for (int i = 2; i <= 4; i++)
-          if (people[i] == '1')
-            moneyToPayy[hashYear][month][i] +=
-                getEqualMoney(money, numberOfPeople);
-      } else {
-        //Tung/Lam/Hien mua
-        moneyToPayy[hashYear][month][buyer - 1] -=
-            getEqualMoney(money, numberOfPeople) * (numberOfPeople - 1);
-        if (people[0] == '1')
-          moneyToPayy[hashYear][month][1] +=
-              getEqualMoney(money, numberOfPeople);
-        for (int i = 2; i <= 4; i++) {
-          if (i != buyer - 1 && people[i] == '1')
-            moneyToPayy[hashYear][month][i] +=
-                getEqualMoney(money, numberOfPeople);
-        }
-      }
-    } else {
-      //nếu người mua ko ăn
-      if (buyer == 1) {
-        // Phong mua
-        moneyToPayy[hashYear][month][1] -= money;
-        for (int i = 2; i <= 4; i++) {
-          if (people[i] == '1')
-            moneyToPayy[hashYear][month][i] +=
-                getEqualMoney(money, numberOfPeople);
-        }
-      } else if (buyer == 2) {
-        //Khánh mua
-        if (people[0] == '1')
-          moneyToPayy[hashYear][month][1] +=
-              getEqualMoney(money, numberOfPeople);
-        for (int i = 2; i <= 4; i++)
-          if (people[i] == '1')
-            moneyToPayy[hashYear][month][i] +=
-                getEqualMoney(money, numberOfPeople);
-      } else {
-        //3 người còn lại mua
-        moneyToPayy[hashYear][month][buyer - 1] -= money;
-        if (people[0] == '1')
-          moneyToPayy[hashYear][month][1] +=
-              getEqualMoney(money, numberOfPeople);
-        for (int i = 2; i <= 4; i++)
-          if (people[i] == '1' && i != buyer - 1)
-            moneyToPayy[hashYear][month][i] +=
-                getEqualMoney(money, numberOfPeople);
-      }
-    }
-    // print("AFTER: $moneyToPayy");
-  }
-
-  int getEqualMoney(int money, int numberOfPeople) {
-    return money ~/ numberOfPeople;
-  }
-
-  String getPeople(String s) {
-    String res = "";
-    print("STRING IS: ${s[3]}");
-    if (s[0] == '1') res = res + "Phong";
-    if (s[1] == '1') res = res + " Khánh";
-    if (s[2] == '1') res = res + " Tùng";
-    if (s[3] == '1') res = res + " Lâm";
-    if (s[4] == '1') res = res + " Hiển";
-    print(res);
-    return res;
-  }
-
-  String getNumberOfPeople(String s) {
-    int count = 0;
-    for (int i = 0; i < s.length; i++) {
-      if (s[i] == '1') count++;
-    }
-    return "$count";
   }
 }

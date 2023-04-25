@@ -61,8 +61,11 @@ class _currentRecordViewState extends State<currentRecordView> {
 
   @override
   Widget build(BuildContext context) {
-    final records =
-        Provider.of<Record_Provider>(context, listen: false).records;
+    final records = Provider.of<Record_Provider>(context, listen: false).records;
+
+    final authData = Provider.of<Authen_Provider>(context, listen: false);
+    final authToken = authData.token;
+    final userId = authData.userId;
 
     return Padding(
         padding: const EdgeInsets.all(16.0),
@@ -147,7 +150,7 @@ class _currentRecordViewState extends State<currentRecordView> {
               child: ElevatedButton(
                   onPressed: () {
                     // state.changeLoading();
-                    update_record(widget.index);
+                    update_record(widget.index, authToken!, userId!);
                     // .then((_) {
                     //   // state.changeLoading();
                     // }).catchError((err) {
@@ -347,7 +350,7 @@ class _currentRecordViewState extends State<currentRecordView> {
     );
   }
 
-  void update_record(int index) {
+  void update_record(int index, String authToken, String userId) {
     print(
         'DATA:\n${cname.text}\n${cmoney.text}\n$people\n${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}\n$buyer\n$type');
     try{
@@ -381,8 +384,10 @@ class _currentRecordViewState extends State<currentRecordView> {
       //     buyer, _selectedDate.month, _selectedDate.year);
 
       //SEND HTTP REQUEST
-      var uri = Uri.parse(
-          'https://phong-s-app-default-rtdb.firebaseio.com/records/${data.records[index].id}.json');
+      // final uri = Uri.parse(
+      //     'https://phong-s-app-default-rtdb.firebaseio.com/records/${data.records[index].id}.json?$authToken');
+      final uri = Uri.parse(
+          'https://phong-s-app-default-rtdb.firebaseio.com/useronly/$userId/${data.records[index].id}.json?$authToken');
       http.patch(uri,
           body: json.encode({
             'name': cname.text.isNotEmpty ? cname.text : data.records[widget.index].name,

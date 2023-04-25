@@ -8,6 +8,7 @@ import 'package:phongs_app/views/Summary.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
+
 class HousingView extends StatefulWidget {
   const HousingView({Key? key}) : super(key: key);
 
@@ -29,6 +30,7 @@ class _HousingViewState extends State<HousingView> {
 
   String _formatNumber(String s) =>
       NumberFormat.decimalPattern(_locale).format(int.parse(s));
+
 
   @override
   Widget build(BuildContext context) {
