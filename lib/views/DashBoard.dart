@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:phongs_app/popupViews/walletView.dart';
+import 'package:phongs_app/providers/BalanceProvider.dart';
+import 'package:phongs_app/providers/CategoriesProvider.dart';
 import 'package:provider/provider.dart';
 import '../data.dart';
 import 'Statistics.dart';
@@ -22,7 +25,12 @@ class _DashBoardViewState extends State<DashBoardView> {
     final records = recordData.records;
 
     final stateData = Provider.of<Loading_State_Provider>(context);
-    final isLoading = stateData.getLoadingState;
+    var isLoading = stateData.getLoadingState;
+
+    final dashboardData = Provider.of<Category_Provider>(context);
+    dashboardData.loadData();
+
+    final balanceData = Provider.of<Balance_Provider>(context);
 
     return RefreshIndicator(
       onRefresh: () {
@@ -39,7 +47,9 @@ class _DashBoardViewState extends State<DashBoardView> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => WalletView(1)));
+                  },
                   child: Container(
                     height: MediaQuery.of(context).size.height * 0.18,
                     width: MediaQuery.of(context).size.width * 0.4,
@@ -60,13 +70,13 @@ class _DashBoardViewState extends State<DashBoardView> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.fastfood_outlined),
+                        const Icon(Icons.account_balance_wallet_outlined),
                         const SizedBox(height: 10),
-                        Text("Food",
+                        Text("Wallet",
                             style: GoogleFonts.firaSans(
                                 fontSize: 20, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 20.0),
-                        Text(currencyFormat.format(totalFood),
+                        Text(currencyFormat.format(balanceData.wallet),
                             style: const TextStyle(
                                 fontSize: 18.0, fontWeight: FontWeight.bold)),
                       ],
@@ -74,7 +84,9 @@ class _DashBoardViewState extends State<DashBoardView> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => WalletView(2)));
+                  },
                   child: Container(
                     height: MediaQuery.of(context).size.height * 0.18,
                     width: MediaQuery.of(context).size.width * 0.4,
@@ -95,17 +107,17 @@ class _DashBoardViewState extends State<DashBoardView> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.home_work_outlined),
+                        const Icon(Icons.account_balance_outlined),
                         const SizedBox(height: 10),
                         Text(
-                          "Household",
+                          "Bank",
                           style: GoogleFonts.firaSans(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 20.0),
-                        Text(currencyFormat.format(totalStationery),
+                        Text(currencyFormat.format(balanceData.bank),
                             style: const TextStyle(
                                 fontSize: 18.0, fontWeight: FontWeight.bold))
                       ],
@@ -114,6 +126,7 @@ class _DashBoardViewState extends State<DashBoardView> {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
             const Divider(),
             getTitle(records, isLoading),
             getRecentRecords(isLoading, records),
@@ -175,12 +188,11 @@ class _DashBoardViewState extends State<DashBoardView> {
                   itemBuilder: (context, id) {
                     return ListTile(
                       leading:
-                          buildLeading(records[records.length - id - 1].by),
+                          buildLeading(records[records.length - id - 1].source),
                       shape: const RoundedRectangleBorder(
                           borderRadius:
                               BorderRadius.all(Radius.circular(10.0))),
-                      subtitle: Text(
-                          records[records.length - id - 1].date.toString()),
+                      subtitle: Text('${records[records.length - id - 1].date.day}/${records[records.length - id - 1].date.month}/${records[records.length - id - 1].date.year}'),
                       title: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,10 +212,10 @@ class _DashBoardViewState extends State<DashBoardView> {
                       ),
                       trailing: (() {
                         switch (records[records.length - id - 1].type) {
-                          case 2:
-                            return const Icon(Icons.home_work_outlined);
                           case 1:
                             return const Icon(Icons.fastfood_outlined);
+                          case 2:
+                            return const Icon(Icons.home_work_outlined);
                         }
                       })(),
                     );
@@ -220,29 +232,8 @@ class _DashBoardViewState extends State<DashBoardView> {
 Widget buildLeading(int value) {
   switch (value) {
     case 1:
-      return Text('Phong',
-          style: GoogleFonts.firaSans(
-            fontSize: 16,
-          ));
-    case 2:
-      return Text('Khánh',
-          style: GoogleFonts.firaSans(
-            fontSize: 16,
-          ));
-    case 3:
-      return Text('Tùng',
-          style: GoogleFonts.firaSans(
-            fontSize: 16,
-          ));
-    case 4:
-      return Text('Lâm',
-          style: GoogleFonts.firaSans(
-            fontSize: 16,
-          ));
+      return const Icon(Icons.account_balance_wallet_outlined);
     default:
-      return Text('Hiển',
-          style: GoogleFonts.firaSans(
-            fontSize: 16,
-          ));
+      return const Icon(Icons.account_balance_outlined);
   }
 }

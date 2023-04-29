@@ -1,12 +1,12 @@
-import 'dart:convert';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:phongs_app/views/GeneralView.dart';
+import 'package:phongs_app/providers/BalanceProvider.dart';
+import 'package:phongs_app/providers/CategoriesProvider.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 import '../data.dart';
+import '../providers/HousingProvider.dart';
 import 'AboutUs.dart';
 import 'UserGuide.dart';
+import 'package:http/http.dart' as http;
 
 class NavBarView extends StatefulWidget {
   const NavBarView({Key? key}) : super(key: key);
@@ -18,18 +18,18 @@ class NavBarView extends StatefulWidget {
 class _NavBarViewState extends State<NavBarView> {
   @override
   Widget build(BuildContext context) {
-    final recordData = Provider.of<Record_Provider>(context);
-    final records = recordData.records;
+    final authenData = Provider.of<Authen_Provider>(context);
+    final mail = authenData.displayEmail;
 
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            accountName: const Text("Dai. Nguyen",
+            accountName: const Text("Hello",
                 style: TextStyle(color: Colors.white)),
-            accountEmail: const Text("nguyendai060703@gmail.com",
-                style: TextStyle(color: Colors.white)),
+            accountEmail: Text(mail,
+                style: const TextStyle(color: Colors.white)),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
                 child: Image.asset("assets/images/big_mouth_cat.jpg",
@@ -45,10 +45,6 @@ class _NavBarViewState extends State<NavBarView> {
               leading: const Icon(Icons.account_tree_outlined),
               title: const Text("Reset"),
               onTap: () => reset()),
-          ListTile(
-              leading: const Icon(Icons.account_tree_outlined),
-              title: const Text("Reset this month"),
-              onTap: () => resetThisMonth()),
           ListTile(
             leading: const Icon(Icons.question_mark),
             title: const Text("User guide"),
@@ -96,71 +92,14 @@ class _NavBarViewState extends State<NavBarView> {
               TextButton(
                 child: const Text('Agree'),
                 onPressed: () {
-                  setState(() {
-                    // records.clear();
-                    totalFood = 0;
-                    totalStationery = 0;
-
-                    for (int i = 0; i < 4; i++) {
-                      for (int j = 0; j <= 12; j++) {
-                        check[i][j] = 0;
-                        house[i][j] = 500000;
-                        electric[i][j] = 0;
-                        water[i][j] = 0;
-                        motorFee[i][j] = 80000;
-                        for (int k = 0; k <= 4; k++) {
-                          moneyToPayy[i][j][k] = 0;
-                          saved[i][j][k] = 0;
-                        }
-                      }
-                    }
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-
-  void resetThisMonth() => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Confirm action'),
-            content: const Text(
-                'Are you sure you want to reset this month\'s data ?'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Agree'),
-                onPressed: () async {
-                  setState(() {
-                    int tmpFood = 0, tmpStationery = 0;
-                    int thisMonth = DateTime.now().month;
-                    int thisYearHashed = DateTime.now().year % 2020 - 3;
-
-                    totalFood -= tmpFood;
-                    totalStationery -= tmpStationery;
-
-                    print("NEW FOOD: $totalFood NEW STA $totalStationery");
-
-                    check[thisYearHashed][thisMonth] = 0;
-                    house[thisYearHashed][thisMonth] = 500000;
-                    electric[thisYearHashed][thisMonth] = 0;
-                    water[thisYearHashed][thisMonth] = 0;
-                    motorFee[thisYearHashed][thisMonth] = 80000;
-                    for (int k = 0; k <= 4; k++) {
-                      moneyToPayy[thisYearHashed][thisMonth][k] = 0;
-                      saved[thisYearHashed][thisMonth][k] = 0;
-                    }
-                  });
-
+                  Provider.of<Record_Provider>(context, listen: false).clearRecord();
+                  Provider.of<Category_Provider>(context, listen: false).resetAll();
+                  Provider.of<Balance_Provider>(context, listen: false).resetAll();
+                  Provider.of<Housing_Provider>(context, listen: false).resetAll();
+                  final authToken = Provider.of<Authen_Provider>(context, listen: false).token;
+                  var uri = Uri.parse(
+                      'https://phong-s-app-default-rtdb.firebaseio.com/records.json?$authToken');
+                  http.delete(uri).then((value) => print('Reset complete'));
                   Navigator.of(context).pop();
                 },
               ),
@@ -224,6 +163,7 @@ class _NavBarViewState extends State<NavBarView> {
               Provider.of<Authen_Provider>(context, listen: false).logout();
               Navigator.of(context).pop();
               // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx) => const GeneralScreen()));
+
             },
           ),
         ],

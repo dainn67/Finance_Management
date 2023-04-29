@@ -43,9 +43,8 @@ class _AuthenViewState extends State<AuthenView> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: Colors.grey[300],
-        body: SafeArea(
-            child: Center(
-                child: Column(
+        body: Center(
+            child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Welcome Back',
@@ -216,38 +215,44 @@ class _AuthenViewState extends State<AuthenView> {
                       )
                     ],
                   ),
-                  InkWell(
-                    onTap: () {
-                      final data = Provider.of<Authen_Provider>(context, listen: false);
-                      final isAuth = data.getIsAuth;
-                      final token = data.token;
-                      print('IS AUTH (DEBUG): $isAuth');
-                      print('TOKEN (DEBUG): $token');
-                    },
-                    child: const Text(
-                      'DEBUG',
-                      style: TextStyle(
-                          color: Colors.blueAccent,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
+            InkWell(
+              onTap: () {
+                Provider.of<Authen_Provider>(context, listen: false).signIn('a@gmail.com', '111111');
+              },
+              child: const Text(
+                'DEBUG',
+                style: TextStyle(
+                    color: Colors.blueAccent, fontWeight: FontWeight.bold),
+              ),
+            ),
             const SizedBox(height: 40),
           ],
-        ))));
+        )));
   }
 
   void signIn_Up() {
     if (state == 1 && canSignIn) {
-      print('Can sign in: $canSignIn');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Signing In'), duration: Duration(seconds: 1)));
       Provider.of<Authen_Provider>(context, listen: false)
-          .signIn(email, password);
+          .signIn(email, password)
+          .then((value) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('SignIn Complete')));
+      }).catchError((err) {
+        print(err);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('SignIn Failed')));
+      });
     }
     if (state == 2 && canSignUp) {
+      // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signing Up')));
       print('Can sign up: $canSignUp');
       try {
         Provider.of<Authen_Provider>(context, listen: false)
             .signUp(email, password)
             .catchError((err) {
+          displaySnackBar('Sign up FAILED');
           if (err.toString().contains('EMAIL_EXISTS')) {
             displaySnackBar('Email existed');
           } else if (err.toString().contains('INVALID_EMAIL')) {
@@ -261,7 +266,7 @@ class _AuthenViewState extends State<AuthenView> {
           }
         });
         setState(() {
-          state == 1;   //go back to SignIn view
+          state == 1; //go back to SignIn view
         });
       } catch (err) {
         print('Cannot authenticate: $err');

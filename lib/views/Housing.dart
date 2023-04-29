@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:phongs_app/data.dart';
-import 'package:phongs_app/views/Summary.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:phongs_app/providers/CategoriesProvider.dart';
+import 'package:phongs_app/providers/HousingProvider.dart';
+import 'package:provider/provider.dart';
 
+enum EditOption { house, electric, water, parking }
 
 class HousingView extends StatefulWidget {
   const HousingView({Key? key}) : super(key: key);
@@ -18,78 +16,47 @@ class HousingView extends StatefulWidget {
 
 class _HousingViewState extends State<HousingView> {
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
-  final TextEditingController _house = TextEditingController();
-  final TextEditingController _electric = TextEditingController();
-  final TextEditingController _water = TextEditingController();
-  final TextEditingController _bike = TextEditingController();
+  final TextEditingController _tmpController = TextEditingController();
 
   int displayMonth = DateTime.now().month;
   int displayYear = DateTime.now().year;
+
+  int tmpValue = 0;
+
+  late EditOption editOption;
 
   static const _locale = 'en';
 
   String _formatNumber(String s) =>
       NumberFormat.decimalPattern(_locale).format(int.parse(s));
 
+  @override
+  void dispose() {
+    _tmpController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final housingData = Provider.of<Housing_Provider>(context);
+    final dashboardData = Provider.of<Category_Provider>(context);
+
     return Scaffold(
       body: Column(
         children: [
           const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (!(displayMonth == 1 && displayYear == 2023)) {
-                        if (displayMonth == 1) {
-                          displayMonth = 12;
-                          displayYear--;
-                        } else {
-                          displayMonth--;
-                        }
-                      }
-                    });
-                  },
-                  child: const Icon(Icons.chevron_left)),
-              const SizedBox(width: 10),
-              Text("Tháng $displayMonth/$displayYear",
-                  style: GoogleFonts.firaSans(
-                      fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 10),
-              GestureDetector(
-                  onTap: () {
-                    if ((displayMonth < DateTime.now().month &&
-                            displayYear >= DateTime.now().year) ||
-                        displayYear < DateTime.now().year) {
-                      setState(() {
-                        if (displayMonth == 12) {
-                          displayYear++;
-                          displayMonth = 1;
-                        } else {
-                          displayMonth++;
-                        }
-                      });
-                    }
-                  },
-                  child: const Icon(Icons.chevron_right)),
-            ],
-          ),
           GestureDetector(
             onTap: () {
-              editHouse();
+              editOption = EditOption.house;
+              edit(housingData);
             },
             child: ListTile(
               leading: const Icon(Icons.house_outlined),
-              title:
-                  Text("Tiền nhà", style: GoogleFonts.firaSans(fontSize: 20)),
-              subtitle: const Text("Bấm để sửa"),
+              title: Text("House rental",
+                  style: GoogleFonts.firaSans(fontSize: 20)),
+              subtitle: const Text("Tap to change"),
               trailing: Text(
-                currencyFormatter
-                    .format(house[hashYear(displayYear)][displayMonth]),
+                currencyFormatter.format(housingData.house),
                 style: const TextStyle(fontSize: 20),
               ),
             ),
@@ -97,16 +64,16 @@ class _HousingViewState extends State<HousingView> {
           const SizedBox(height: 10),
           GestureDetector(
             onTap: () {
-              editElectric();
+              editOption = EditOption.electric;
+              edit(housingData);
             },
             child: ListTile(
               leading: const Icon(Icons.electric_bolt),
-              title:
-                  Text("Tiền điện", style: GoogleFonts.firaSans(fontSize: 20)),
-              subtitle: const Text("Bấm để sửa"),
+              title: Text("Electricity bill",
+                  style: GoogleFonts.firaSans(fontSize: 20)),
+              subtitle: const Text("Tap to change"),
               trailing: Text(
-                currencyFormatter
-                    .format(electric[hashYear(displayYear)][displayMonth]),
+                currencyFormatter.format(housingData.electric),
                 style: const TextStyle(fontSize: 20),
               ),
             ),
@@ -114,16 +81,16 @@ class _HousingViewState extends State<HousingView> {
           const SizedBox(height: 10),
           GestureDetector(
             onTap: () {
-              editWater();
+              editOption = EditOption.water;
+              edit(housingData);
             },
             child: ListTile(
               leading: const Icon(Icons.water_drop_outlined),
               title:
-                  Text("Tiền nước", style: GoogleFonts.firaSans(fontSize: 20)),
-              subtitle: const Text("Bấm để sửa"),
+                  Text("Water bill", style: GoogleFonts.firaSans(fontSize: 20)),
+              subtitle: const Text("Tap to change"),
               trailing: Text(
-                currencyFormatter
-                    .format(water[hashYear(displayYear)][displayMonth]),
+                currencyFormatter.format(housingData.water),
                 style: const TextStyle(fontSize: 20),
               ),
             ),
@@ -131,80 +98,33 @@ class _HousingViewState extends State<HousingView> {
           const SizedBox(height: 10),
           ListTile(
             onTap: () {
-              editMotorFee();
+              editOption = EditOption.parking;
+              edit(housingData);
             },
             leading: const Icon(Icons.pedal_bike_outlined),
-            title: Text("Phụ phí (gửi xe)",
-                style: GoogleFonts.firaSans(fontSize: 20)),
-            subtitle: const Text("Bấm để sửa"),
+            title:
+                Text("Parking fee", style: GoogleFonts.firaSans(fontSize: 20)),
+            subtitle: const Text("Tap to change"),
             trailing: Text(
-              currencyFormatter
-                  .format(motorFee[hashYear(displayYear)][displayMonth]),
+              currencyFormatter.format(housingData.motorbike),
               style: const TextStyle(fontSize: 20),
             ),
-          ),
-          Row(
-            children: [
-              Checkbox(
-                value: motors[hashYear(displayYear)][displayMonth][0],
-                onChanged: (bool? value) async {
-                  setState(() {
-                    motors[hashYear(displayYear)][displayMonth][0] = value!;
-                  });
-                  final fileMotors = await _localMotors;
-                  fileMotors.writeAsStringSync(jsonEncode(motors));
-                },
-              ),
-              const Text('Phong'),
-              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-              Checkbox(
-                value: motors[hashYear(displayYear)][displayMonth][1],
-                onChanged: (bool? value) async {
-                  setState(() {
-                    motors[hashYear(displayYear)][displayMonth][1] = value!;
-                  });
-                  final fileMotors = await _localMotors;
-                  fileMotors.writeAsStringSync(jsonEncode(motors));
-                },
-              ),
-              const Text('Tùng'),
-              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-              Checkbox(
-                value: motors[hashYear(displayYear)][displayMonth][2],
-                onChanged: (bool? value) async {
-                  setState(() {
-                    motors[hashYear(displayYear)][displayMonth][2] = value!;
-                  });
-                  final fileMotors = await _localMotors;
-                  fileMotors.writeAsStringSync(jsonEncode(motors));
-                },
-              ),
-              const Text('Lâm'),
-              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-              Checkbox(
-                value: motors[hashYear(displayYear)][displayMonth][3],
-                onChanged: (bool? value) async {
-                  setState(() {
-                    motors[hashYear(displayYear)][displayMonth][3] = value!;
-                  });
-                  final fileMotors = await _localMotors;
-                  fileMotors.writeAsStringSync(jsonEncode(motors));
-                },
-              ),
-              const Text('Hiển'),
-            ],
           ),
           const SizedBox(height: 10),
           const Divider(),
           GestureDetector(
             onTap: () {
-              showTotalEach();
+              showTotal(dashboardData, housingData);
             },
             child: ListTile(
               leading: const Icon(Icons.done_all),
-              title: Text("Tổng / Mỗi người",
-                  style: GoogleFonts.firaSans(fontSize: 20)),
-              subtitle: const Text("Bấm xem chi tiết"),
+              title: Text("Total this month",
+                  style: GoogleFonts.firaSans(fontSize: 20, fontWeight: FontWeight.bold)),
+              subtitle: const Text("Tap for detail"),
+              trailing: Text(
+                currencyFormatter.format(housingData.getTotal()),
+                style: const TextStyle(fontSize: 20),
+              ),
             ),
           )
         ],
@@ -212,14 +132,12 @@ class _HousingViewState extends State<HousingView> {
     );
   }
 
-  void editHouse() => showDialog(
+  void edit(Housing_Provider hData) => showDialog(
         context: context,
         builder: (BuildContext context) {
-          // String people = getPeople(getPeople(records[id]["people"]));
-
           return AlertDialog(
-            title: const Text('Tiền nhà'),
-            content: Container(
+            title: getEditTitle(editOption),
+            content: SizedBox(
               height: MediaQuery.of(context).size.height * 0.2,
               width: MediaQuery.of(context).size.height * 0.9,
               child: Column(
@@ -227,113 +145,46 @@ class _HousingViewState extends State<HousingView> {
                 children: [
                   TextField(
                     decoration: InputDecoration(
-                      labelText: 'Nhập tiền nhà (VND)',
+                      labelText: getEditLabelText(editOption),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    controller: _house,
+                    controller: _tmpController,
                     keyboardType: TextInputType.number,
                     onChanged: (string) {
                       string = _formatNumber(string.replaceAll(',', ''));
                       if (string.isNotEmpty) {
-                        // print("STRING: $string");
-                        _house.value = TextEditingValue(
-                          text: string,
-                          selection:
-                              TextSelection.collapsed(offset: string.length),
-                        );
-                        print("HOUSE TEXT:${_house.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
-                      }
-                      // cmoney.text = int.parse(string.text.toString());
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Huỷ'),
-                onPressed: () {
-                  _house.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Nhập'),
-                onPressed: () async {
-                  house[hashYear(displayYear)][displayMonth] = int.parse(_house.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', ''));
-                  final fileHouse = await _localHouse;
-                  fileHouse.writeAsStringSync(jsonEncode(house));
-                  _house.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-
-  void editElectric() => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          // String people = getPeople(getPeople(records[id]["people"]));
-
-          return AlertDialog(
-            title: const Text('Tiền điện'),
-            content: Container(
-              height: MediaQuery.of(context).size.height * 0.2,
-              width: MediaQuery.of(context).size.height * 0.9,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Nhập tiền điện (VND)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    controller: _electric,
-                    keyboardType: TextInputType.number,
-                    onChanged: (string) {
-                      string = _formatNumber(string.replaceAll(',', ''));
-                      if (string.isNotEmpty) {
-                        // print("STRING: $string");
-                        _electric.value = TextEditingValue(
+                        _tmpController.value = TextEditingValue(
                           text: string,
                           selection:
                               TextSelection.collapsed(offset: string.length),
                         );
                         print(
-                            "ELECTRIC TEXT:${_electric.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
+                            "TEXT:${_tmpController.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
+                        tmpValue = int.parse(_tmpController.text
+                            .replaceAll(RegExp(r'\.\d+'), '')
+                            .replaceAll(',', ''));
                       }
-                      // cmoney.text = int.parse(string.text.toString());
                     },
                   ),
-                  const SizedBox(height: 20),
-                  const Text("Ghi chú: tiền điện được chia đều 5 người")
                 ],
               ),
             ),
             actions: <Widget>[
               TextButton(
-                child: const Text('Huỷ'),
+                child: const Text('Cancel'),
                 onPressed: () {
-                  _electric.clear();
+                  _tmpController.clear();
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
-                child: const Text('Nhập'),
-                onPressed: () async {
-                  electric[hashYear(displayYear)][displayMonth] = int.parse(
-                      _electric.text
-                          .replaceAll(RegExp(r'\.\d+'), '')
-                          .replaceAll(',', ''));
-                  final fileElectric = await _localElectric;
-                  fileElectric.writeAsStringSync(jsonEncode(electric));
-                  _electric.clear();
+                child: const Text('Update'),
+                onPressed: () {
+                  updateHousing(editOption, hData);
+                  hData.saveHousing();
+                  _tmpController.clear();
                   Navigator.of(context).pop();
                 },
               ),
@@ -342,187 +193,45 @@ class _HousingViewState extends State<HousingView> {
         },
       );
 
-  void editWater() => showDialog(
+  void showTotal(Category_Provider dashboardProvider, Housing_Provider hData) =>
+      showDialog(
         context: context,
         builder: (BuildContext context) {
-          // String people = getPeople(getPeople(records[id]["people"]));
-
           return AlertDialog(
-            title: const Text('Tiền nước'),
-            content: Container(
-              height: MediaQuery.of(context).size.height * 0.2,
-              width: MediaQuery.of(context).size.height * 0.9,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Nhập tiền nước (VND)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    controller: _water,
-                    keyboardType: TextInputType.number,
-                    onChanged: (string) {
-                      string = _formatNumber(string.replaceAll(',', ''));
-                      if (string.isNotEmpty) {
-                        // print("STRING: $string");
-                        _water.value = TextEditingValue(
-                          text: string,
-                          selection:
-                              TextSelection.collapsed(offset: string.length),
-                        );
-                        print(
-                            "WATER TEXT:${_water.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
-                      }
-                      // cmoney.text = int.parse(string.text.toString());
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  const Text("Ghi chú: tiền nước được chia đều 5 người")
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Huỷ'),
-                onPressed: () {
-                  _water.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Nhập'),
-                onPressed: () async {
-                  water[hashYear(displayYear)][displayMonth] = int.parse(_water
-                      .text
-                      .replaceAll(RegExp(r'\.\d+'), '')
-                      .replaceAll(',', ''));
-                  final fileWater = await _localWater;
-                  fileWater.writeAsStringSync(jsonEncode(water));
-                  _water.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-
-  void editMotorFee() => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          // String people = getPeople(getPeople(records[id]["people"]));
-
-          return AlertDialog(
-            title: const Text('Tiền gửi xe'),
-            content: Container(
-              height: MediaQuery.of(context).size.height * 0.2,
-              width: MediaQuery.of(context).size.height * 0.9,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Nhập tiền gủi xe (VND)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    controller: _bike,
-                    keyboardType: TextInputType.number,
-                    onChanged: (string) {
-                      string = _formatNumber(string.replaceAll(',', ''));
-                      if (string.isNotEmpty) {
-                        // print("STRING: $string");
-                        _bike.value = TextEditingValue(
-                          text: string,
-                          selection:
-                              TextSelection.collapsed(offset: string.length),
-                        );
-                        print(
-                            "MOTOR FEE TEXT:${_bike.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
-                      }
-                      // cmoney.text = int.parse(string.text.toString());
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                      "Ghi chú: Tiền xe được tính theo người đăng kí gửi xe")
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('Huỷ'),
-                onPressed: () {
-                  _bike.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: const Text('Nhập'),
-                onPressed: () async {
-                  motorFee[hashYear(displayYear)][displayMonth] = int.parse(
-                      _bike.text
-                          .replaceAll(RegExp(r'\.\d+'), '')
-                          .replaceAll(',', ''));
-                  final fileFee = await _localMotorFee;
-                  fileFee.writeAsStringSync(jsonEncode(motorFee));
-                  _bike.clear();
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
-
-  void showTotalEach() => showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          int house_elec_water = house[hashYear(displayYear)][displayMonth] +
-              (electric[hashYear(displayYear)][displayMonth] ~/ 5) +
-              (water[hashYear(displayYear)][displayMonth] ~/ 5);
-          return AlertDialog(
-            title: const Text('Tiền nhà mỗi người đóng'),
-            content: Container(
+            title: const Text('Total expenses of this month'),
+            content: SizedBox(
               height: MediaQuery.of(context).size.height * 0.3,
-              width: MediaQuery.of(context).size.height * 0.9,
+              width: MediaQuery.of(context).size.height,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    title: Text("Phong"),
-                    trailing: motors[hashYear(displayYear)][displayMonth][0]
-                        ? Text(currencyFormatter.format(house_elec_water +
-                            motorFee[hashYear(displayYear)][displayMonth]))
-                        : Text(currencyFormatter.format(house_elec_water)),
-                  ),
+                      leading: const Icon(Icons.food_bank_outlined),
+                      title: const Text("Food & drinks"),
+                      trailing: Text(currencyFormatter
+                          .format(dashboardProvider.fAndD)
+                          .toString())),
                   ListTile(
-                    title: Text("Tùng"),
-                    trailing: motors[hashYear(displayYear)][displayMonth][1]
-                        ? Text(currencyFormatter.format(house_elec_water +
-                            motorFee[hashYear(displayYear)][displayMonth]))
-                        : Text(currencyFormatter.format(house_elec_water)),
-                  ),
+                      leading: const Icon(Icons.settings),
+                      title: const Text("Household appliance"),
+                      trailing: Text(currencyFormatter
+                          .format(dashboardProvider.household)
+                          .toString())),
                   ListTile(
-                    title: Text("Lâm"),
-                    trailing: motors[hashYear(displayYear)][displayMonth][2]
-                        ? Text(currencyFormatter.format(house_elec_water +
-                            motorFee[hashYear(displayYear)][displayMonth]))
-                        : Text(currencyFormatter.format(house_elec_water)),
-                  ),
+                      leading: const Icon(Icons.house_outlined),
+                      title: const Text("Housing"),
+                      trailing: Text(currencyFormatter
+                          .format(hData.getTotal())
+                          .toString())),
+                  const Divider(),
                   ListTile(
-                    title: Text("Hiển"),
-                    trailing: motors[hashYear(displayYear)][displayMonth][3]
-                        ? Text(currencyFormatter.format(house_elec_water -
-                            house[hashYear(displayYear)][displayMonth] +
-                            motorFee[hashYear(displayYear)][displayMonth]))
-                        : Text(currencyFormatter.format(house_elec_water -
-                            house[hashYear(displayYear)][displayMonth])),
-                  ),
+                      leading: const Icon(Icons.summarize_outlined),
+                      title: const Text("Total"),
+                      trailing: Text(currencyFormatter
+                          .format(dashboardProvider.fAndD +
+                              dashboardProvider.household +
+                              hData.getTotal())
+                          .toString())),
                 ],
               ),
             ),
@@ -530,33 +239,46 @@ class _HousingViewState extends State<HousingView> {
         },
       );
 
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
+  void updateHousing(EditOption editOption, Housing_Provider hData) {
+    switch (editOption) {
+      case EditOption.house:
+        hData.changeHouse(tmpValue);
+        break;
+      case EditOption.electric:
+        hData.changeElectric(tmpValue);
+        break;
+      case EditOption.water:
+        hData.changeWater(tmpValue);
+        break;
+      case EditOption.parking:
+        hData.changeMotorFee(tmpValue);
+        break;
+    }
   }
 
-  Future<File> get _localMotors async {
-    final path = await _localPath;
-    return File('$path/motors.txt');
+  Text getEditTitle(EditOption editOption) {
+    switch (editOption) {
+      case EditOption.house:
+        return const Text('House rental');
+      case EditOption.electric:
+        return const Text('Electric bill');
+      case EditOption.water:
+        return const Text('Water bill');
+      case EditOption.parking:
+        return const Text('Parking fee');
+    }
   }
 
-  Future<File> get _localHouse async {
-    final path = await _localPath;
-    return File('$path/house.txt');
-  }
-
-  Future<File> get _localElectric async {
-    final path = await _localPath;
-    return File('$path/electric.txt');
-  }
-
-  Future<File> get _localWater async {
-    final path = await _localPath;
-    return File('$path/water.txt');
-  }
-
-  Future<File> get _localMotorFee async {
-    final path = await _localPath;
-    return File('$path/motorsFee.txt');
+  String getEditLabelText(EditOption editOption) {
+    switch (editOption) {
+      case EditOption.house:
+        return 'Enter house\'s rental value (VND)';
+      case EditOption.electric:
+        return 'Enter bill\'s value (VND)';
+      case EditOption.water:
+        return 'Enter bill\'s value (VND)';
+      case EditOption.parking:
+        return 'Enter fee (VND)';
+    }
   }
 }

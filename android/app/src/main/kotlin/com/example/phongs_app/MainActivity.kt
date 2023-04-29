@@ -1,4 +1,4 @@
-package com.example.phongs_app
+package com.ictdev.expense_tracker
 
 import io.flutter.embedding.android.FlutterActivity
 

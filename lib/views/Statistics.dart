@@ -85,13 +85,12 @@ class _StatisticViewState extends State<StatisticView> {
                               dismissRecord(recordData, stateData, records.length - id - 1);
                             },
                             child: ListTile(
-                              onTap: () {
+                              onLongPress: () {
                                 detail_edit(records, records.length - id - 1);
                               },
-                              leading: buildLeading(
-                                  records[records.length - id - 1].by),
+                              leading: buildLeading(records[records.length - id - 1].source),
                               subtitle:
-                                  Text(records[records.length - id - 1].date),
+                                  Text('${records[records.length - id - 1].date.day}/${records[records.length - id - 1].date.month}/${records[records.length - id - 1].date.year}'),
                               title: Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,193 +149,11 @@ class _StatisticViewState extends State<StatisticView> {
       context: context,
       builder: (BuildContext bc) {
         int type = records[i].type;
-        int buyer = records[i].by;
-        String people = records[i].people;
-        String date = records[i].date;
-        return currentRecordView(i, type, buyer, people, date);
+        int source = records[i].source;
+        String note = records[i].note;
+        DateTime date = records[i].date;
+        return currentRecordView(i, type, source, note, date);
       });
-  //
-  // void detailAndEdit(List<Record> records, int id) => showDialog(
-  //       context: context,
-  //       builder: (BuildContext context) {
-  //         return AlertDialog(
-  //           title: const Text('Detail'),
-  //           content: SizedBox(
-  //             height: MediaQuery.of(context).size.height * 0.5,
-  //             width: MediaQuery.of(context).size.height * 0.9,
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 ListTile(
-  //                   title: Text(records[id].name,
-  //                       style: GoogleFonts.firaSans(
-  //                           fontSize: 22, fontWeight: FontWeight.bold)),
-  //                 ),
-  //                 ListTile(
-  //                   title: Text("Amount",
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                   trailing: Text(currencyFormat.format(records[id].money),
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                 ),
-  //                 ListTile(
-  //                   title: Text("Purchaser",
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                   trailing: Text(getBuyer(records[id].by),
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                 ),
-  //                 ListTile(
-  //                   title: Text("Users",
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                   subtitle: Text(getPeople(records[id].people)),
-  //                   trailing: Text(getNumberOfPeople(records[id].people)),
-  //                 ),
-  //                 ListTile(
-  //                   title:
-  //                       Text("Date", style: GoogleFonts.firaSans(fontSize: 22)),
-  //                   trailing: Text(records[id].date,
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                 ),
-  //                 ListTile(
-  //                   title: Text("Each pay",
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                   trailing: Text(
-  //                       currencyFormat.format(getEqualMoney(
-  //                           records[id].money, records[id].people)),
-  //                       style: GoogleFonts.firaSans(fontSize: 22)),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           actions: <Widget>[
-  //             TextButton(
-  //               child: const Text('Change'),
-  //               onPressed: () {
-  //                 // _electric.clear();
-  //                 Navigator.of(context).pop();
-  //               },
-  //             ),
-  //             TextButton(
-  //               child: const Text('OK'),
-  //               onPressed: () async {
-  //                 // electric[hashYear(displayYear)][displayMonth] = int.parse(
-  //                 //     _electric.text
-  //                 //         .replaceAll(RegExp(r'\.\d+'), '')
-  //                 //         .replaceAll(',', ''));
-  //                 // final fileElectric = await _localElectric;
-  //                 // fileElectric.writeAsStringSync(jsonEncode(electric));
-  //                 // _electric.clear();
-  //                 Navigator.of(context).pop();
-  //               },
-  //             ),
-  //           ],
-  //         );
-  //       },
-  //     );
-
-  String getBuyer(int i) {
-    switch (i) {
-      case 1:
-        return "Phong";
-      case 2:
-        return "Khánh";
-      case 3:
-        return "Tùng";
-      case 4:
-        return "Lâm";
-      default:
-        return "Hiển";
-    }
-  }
-
-  String getPeople(String s) {
-    String res = "";
-    if (s[0] == '1') res = res + "Phong";
-    if (s[1] == '1') res = res + " Khánh";
-    if (s[2] == '1') res = res + " Tùng";
-    if (s[3] == '1') res = res + " Lâm";
-    if (s[4] == '1') res = res + " Hiển";
-    return res;
-  }
-
-  String getNumberOfPeople(String s) {
-    int count = 0;
-    for (int i = 0; i < s.length; i++) {
-      if (s[i] == '1') count++;
-    }
-    return "$count";
-  }
-
-  int getEqualMoney(int money, String s) {
-    return money ~/ int.parse(getNumberOfPeople(s));
-  }
-
-  Future<void> refund(
-      int money, int buyer, String people, String date, int type) async {
-    List<String> dateParts = date.split('/');
-    int month = int.parse(dateParts[1]);
-    int year = int.parse(dateParts[2]);
-
-    int hashYear = 0;
-    switch (year) {
-      case 2023:
-        hashYear = 0;
-        break;
-      case 2024:
-        hashYear = 1;
-        break;
-      case 2025:
-        hashYear = 2;
-        break;
-      case 2026:
-        hashYear = 3;
-        break;
-    }
-
-    //tính tiền hoàn lại mọi người
-    if (type == 1) {
-      totalFood -= money;
-    } else {
-      totalStationery -= money;
-    }
-    int equal = getEqualMoney(money, people);
-    if (buyer == 2) {
-      if (people[0] == '1') moneyToPayy[hashYear][month][1] -= equal;
-      for (int i = 2; i <= 4; i++) {
-        if (people[i] == '1') moneyToPayy[hashYear][month][i] -= equal;
-      }
-    } else {
-      if (people[buyer - 1] == '0') {
-        if (buyer == 1) {
-          moneyToPayy[hashYear][month][1] += money;
-          for (int i = 2; i <= 4; i++) {
-            if (people[i] == '1') moneyToPayy[hashYear][month][i] -= equal;
-          }
-        } else {
-          moneyToPayy[hashYear][month][buyer - 1] += money;
-          if (people[0] == '1') moneyToPayy[hashYear][month][1] -= equal;
-          for (int i = 2; i <= 4; i++) {
-            if (people[i] == '1' && i != buyer - 1)
-              moneyToPayy[hashYear][month][i] -= equal;
-          }
-        }
-      } else {
-        if (buyer == 1) {
-          moneyToPayy[hashYear][month][1] +=
-              equal * (int.parse(getNumberOfPeople(people)) - 1);
-          for (int i = 2; i <= 4; i++) {
-            if (people[i] == '1') moneyToPayy[hashYear][month][i] -= equal;
-          }
-        } else {
-          moneyToPayy[hashYear][month][buyer - 1] +=
-              equal * (int.parse(getNumberOfPeople(people)) - 1);
-          for (int i = 2; i <= 4; i++) {
-            if (people[i] == '1' && i != buyer - 1)
-              moneyToPayy[hashYear][month][i] -= equal;
-          }
-        }
-      }
-    }
-  }
 
   Future<void> getAndSetRecords() async {
     var uri = Uri.parse(
