@@ -2,8 +2,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../data.dart';
 import '../popupViews/currentRecord.dart';
+import '../providers/LoadingStateProvider.dart';
+import '../providers/RecordProvider.dart';
 import 'DashBoard.dart';
 
 class StatisticView extends StatefulWidget {
@@ -155,17 +156,6 @@ class _StatisticViewState extends State<StatisticView> {
         return currentRecordView(i, type, source, note, date);
       });
 
-  Future<void> getAndSetRecords() async {
-    var uri = Uri.parse(
-        'https://phong-s-app-default-rtdb.firebaseio.com/records.json');
-    try {
-      final res = await http.get(uri);
-      print(res);
-    } catch (err) {
-      rethrow;
-    }
-  }
-
   Future<void> dismissRecord(Record_Provider recordData, Loading_State_Provider stateData, int id) async {
       recordData
           .removeRecord(id)
@@ -184,9 +174,7 @@ Future<void> refreshRecords(BuildContext context, Loading_State_Provider stateDa
   await Provider.of<Record_Provider>(context, listen: false)
       .fetchRecord(true)
       .then((_) {
-
     stateData.changeState();
-
     print('Loading state: ${stateData.getLoadingState}');
   }).catchError((err) {
     print('Refresh error: $err');

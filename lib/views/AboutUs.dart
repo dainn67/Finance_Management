@@ -16,7 +16,7 @@ class AboutUs extends StatelessWidget {
               ListTile(
                 // leading: Image.asset("assets/images/wallet.png"),
                 title: Text(
-                    "YOUR EXPENSE TRACKER\n\nby Dai. Nguyen Nhu\nVersion 2.1.0",
+                    "YOUR EXPENSE TRACKER\n\nby Dai. Nguyen Nhu\nVersion 2.3.1",
                     style: TextStyle(fontSize: 20.0)),
               ),
               SizedBox(height: 20.0),

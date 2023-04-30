@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phongs_app/data.dart';
 import 'package:provider/provider.dart';
+import '../providers/AuthenProvider.dart';
 
 class AuthenView extends StatefulWidget {
   const AuthenView({Key? key}) : super(key: key);
@@ -215,16 +215,16 @@ class _AuthenViewState extends State<AuthenView> {
                       )
                     ],
                   ),
-            InkWell(
-              onTap: () {
-                Provider.of<Authen_Provider>(context, listen: false).signIn('a@gmail.com', '111111');
-              },
-              child: const Text(
-                'DEBUG',
-                style: TextStyle(
-                    color: Colors.blueAccent, fontWeight: FontWeight.bold),
-              ),
-            ),
+            // InkWell(
+            //   onTap: () {
+            //     Provider.of<Authen_Provider>(context, listen: false).signIn('a@gmail.com', '111111');
+            //   },
+            //   child: const Text(
+            //     'DEBUG',
+            //     style: TextStyle(
+            //         color: Colors.blueAccent, fontWeight: FontWeight.bold),
+            //   ),
+            // ),
             const SizedBox(height: 40),
           ],
         )));

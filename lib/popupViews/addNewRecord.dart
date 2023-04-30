@@ -5,8 +5,8 @@ import 'package:phongs_app/providers/BalanceProvider.dart';
 import 'package:phongs_app/providers/CategoriesProvider.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-
-import '../data.dart';
+import '../providers/AuthenProvider.dart';
+import '../providers/RecordProvider.dart';
 
 class addNewRecordView extends StatefulWidget {
   const addNewRecordView({super.key});
@@ -53,131 +53,134 @@ class _addNewRecordViewState extends State<addNewRecordView> {
   @override
   Widget build(BuildContext context) {
     final dashboardData = Provider.of<Category_Provider>(context, listen: false);
+    final authenData = Provider.of<Authen_Provider>(context, listen: false);
 
-    return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            const Center(
-              child: Text("New record",
-                  style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-              decoration: BoxDecoration(
-                color: Colors.lightBlue[100],
-                borderRadius: BorderRadius.circular(8.0),
+    return SingleChildScrollView(
+      child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const Center(
+                child: Text("New record",
+                    style: TextStyle(
+                        color: Colors.blueAccent,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold)),
               ),
-              child: Column(
-                children: [
-                  typeSelection(),
-                  const SizedBox(height: 15),
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Record\'s name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+                decoration: BoxDecoration(
+                  color: Colors.lightBlue[100],
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Column(
+                  children: [
+                    typeSelection(),
+                    const SizedBox(height: 15),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Record\'s name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      controller: cname,
+                      onChanged: (string) {
+                        print("CNAME TEXT: ${cname.text}");
+                      },
                     ),
-                    controller: cname,
-                    onChanged: (string) {
-                      print("CNAME TEXT: ${cname.text}");
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    decoration: InputDecoration(
-                      labelText: 'Amount (vnd)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 20),
+                    TextField(
+                      decoration: InputDecoration(
+                        labelText: 'Amount (vnd)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      controller: cmoney,
+                      keyboardType: TextInputType.number,
+                      onChanged: (string) {
+                        string = _formatNumber(string.replaceAll(',', ''));
+                        if (string.isNotEmpty) {
+                          // print("STRING: $string");
+                          cmoney.value = TextEditingValue(
+                            text: string,
+                            selection:
+                                TextSelection.collapsed(offset: string.length),
+                          );
+                          print(
+                              "CMONEY TEXT:${cmoney.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
+                        }
+                      },
                     ),
-                    controller: cmoney,
-                    keyboardType: TextInputType.number,
-                    onChanged: (string) {
-                      string = _formatNumber(string.replaceAll(',', ''));
-                      if (string.isNotEmpty) {
-                        // print("STRING: $string");
-                        cmoney.value = TextEditingValue(
-                          text: string,
-                          selection:
-                              TextSelection.collapsed(offset: string.length),
-                        );
-                        print(
-                            "CMONEY TEXT:${cmoney.text.replaceAll(RegExp(r'\.\d+'), '').replaceAll(',', '')}");
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 15),
-                  const Text("Source",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-                  const SizedBox(height: 10),
-                  sourceSelector(),
-                  const SizedBox(height: 20),
-                  TextField(
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: 'Notes',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    const SizedBox(height: 15),
+                    const Text("Source",
+                        style:
+                            TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                    const SizedBox(height: 10),
+                    sourceSelector(),
+                    const SizedBox(height: 20),
+                    TextField(
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Notes',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      controller: cnote,
+                      onChanged: (val) {
+                        note = val ?? '';
+                      },
                     ),
-                    controller: cnote,
-                    onChanged: (val) {
-                      note = val ?? '';
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.calendar_today),
-                      const SizedBox(width: 8),
-                      Text(
-                          "Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 16.0),
-                      TextButton(
-                          onPressed: () async {
-                            _selectedDate = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2025),
-                            ) as DateTime;
-                            // setState(() {});
-                          },
-                          child: const Text(
-                            "Change",
-                            style: TextStyle(fontSize: 18.0),
-                          )),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.calendar_today),
+                        const SizedBox(width: 8),
+                        Text(
+                            "Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 16.0),
+                        TextButton(
+                            onPressed: () async {
+                               _selectedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2025),
+                              ) as DateTime;
+                               setState(() {});
+                            },
+                            child: const Text(
+                              "Change",
+                              style: TextStyle(fontSize: 18.0),
+                            )),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Center(
-              child: ElevatedButton(
-                  onPressed: () {
-                    submit_done(dashboardData).then((_) {
-                    }).catchError((err) {
-                      Navigator.of(context).pop();
-                      print("ERROR HERE 2: $err");
-                    });
-                  },
-                  child: const Text("Add")),
-            ),
-          ],
-        ));
+              const SizedBox(height: 10),
+              Center(
+                child: ElevatedButton(
+                    onPressed: () {
+                      submit_done(dashboardData, authenData.token ?? '').then((_) {
+                      }).catchError((err) {
+                        Navigator.of(context).pop();
+                        print("ERROR HERE 2: $err");
+                      });
+                    },
+                    child: const Text("Add")),
+              ),
+            ],
+          )),
+    );
   }
 
   CupertinoSlidingSegmentedControl typeSelection() {
@@ -240,7 +243,7 @@ class _addNewRecordViewState extends State<addNewRecordView> {
     );
   }
 
-  Future<void> submit_done(Category_Provider dashboardData) async {
+  Future<void> submit_done(Category_Provider dashboardData, String authToken) async {
     try{
       final data = Provider.of<Record_Provider>(context, listen: false);
       final balanceData = Provider.of<Balance_Provider>(context, listen: false);
@@ -252,9 +255,9 @@ class _addNewRecordViewState extends State<addNewRecordView> {
           .toString());
 
       if(source == 1) {
-        balanceData.addToWallet(money);
+        balanceData.subtractFromWallet(money);
       } else {
-        balanceData.addToBank(money);
+        balanceData.subtractFromBank(money);
       }
 
       if(type == 1){

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:phongs_app/providers/BalanceProvider.dart';
 import 'package:phongs_app/providers/CategoriesProvider.dart';
 import 'package:provider/provider.dart';
-import '../data.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/AuthenProvider.dart';
 import '../providers/HousingProvider.dart';
+import '../providers/RecordProvider.dart';
 import 'AboutUs.dart';
 import 'UserGuide.dart';
 import 'package:http/http.dart' as http;
@@ -91,15 +93,19 @@ class _NavBarViewState extends State<NavBarView> {
               ),
               TextButton(
                 child: const Text('Agree'),
-                onPressed: () {
+                onPressed: () async {
+                  final authToken = Provider.of<Authen_Provider>(context, listen: false).token;
+                  for(int i = 4; i<=12; i++){
+                    var uri = Uri.parse(
+                        'https://phong-s-app-default-rtdb.firebaseio.com/records_${i}_${DateTime.now().year}.json?$authToken');
+                    http.delete(uri).then((value) => print('Reset complete'));
+                  }
                   Provider.of<Record_Provider>(context, listen: false).clearRecord();
                   Provider.of<Category_Provider>(context, listen: false).resetAll();
                   Provider.of<Balance_Provider>(context, listen: false).resetAll();
                   Provider.of<Housing_Provider>(context, listen: false).resetAll();
-                  final authToken = Provider.of<Authen_Provider>(context, listen: false).token;
-                  var uri = Uri.parse(
-                      'https://phong-s-app-default-rtdb.firebaseio.com/records.json?$authToken');
-                  http.delete(uri).then((value) => print('Reset complete'));
+                  final prefs = await SharedPreferences.getInstance();
+                  prefs.clear();
                   Navigator.of(context).pop();
                 },
               ),

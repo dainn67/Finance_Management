@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:phongs_app/popupViews/walletView.dart';
+import 'package:phongs_app/providers/AuthenProvider.dart';
 import 'package:phongs_app/providers/BalanceProvider.dart';
 import 'package:phongs_app/providers/CategoriesProvider.dart';
 import 'package:provider/provider.dart';
-import '../data.dart';
+import '../providers/LoadingStateProvider.dart';
+import '../providers/RecordProvider.dart';
 import 'Statistics.dart';
 
 class DashBoardView extends StatefulWidget {
@@ -21,14 +23,16 @@ class _DashBoardViewState extends State<DashBoardView> {
 
   @override
   Widget build(BuildContext context) {
+    final authenData = Provider.of<Authen_Provider>(context);
+
     final recordData = Provider.of<Record_Provider>(context);
     final records = recordData.records;
 
     final stateData = Provider.of<Loading_State_Provider>(context);
     var isLoading = stateData.getLoadingState;
 
-    final dashboardData = Provider.of<Category_Provider>(context);
-    dashboardData.loadData();
+    final categoryData = Provider.of<Category_Provider>(context);
+    categoryData.loadData();
 
     final balanceData = Provider.of<Balance_Provider>(context);
 

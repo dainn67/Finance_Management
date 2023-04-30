@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:phongs_app/data.dart';
+import 'package:phongs_app/providers/AuthenProvider.dart';
 import 'package:phongs_app/providers/BalanceProvider.dart';
 import 'package:provider/provider.dart';
+import '../providers/LoadingStateProvider.dart';
+import '../providers/RecordProvider.dart';
 
 class WalletView extends StatefulWidget {
   int wallerOrBank;
@@ -37,6 +39,7 @@ class _WalletViewState extends State<WalletView> {
     final stateData = Provider.of<Loading_State_Provider>(context);
     final recordData = Provider.of<Record_Provider>(context);
     final tmpRecords = recordData.records;
+    final authenData = Provider.of<Authen_Provider>(context);
     List<Record> records = [];
     for (var record in tmpRecords) {
       if(widget.wallerOrBank == 1) {
@@ -81,7 +84,7 @@ class _WalletViewState extends State<WalletView> {
                     ),
                     trailing: GestureDetector(
                       onTap: () {
-                        editBalance(balanceData);
+                        editBalance(balanceData, authenData.token ?? '');
                       },
                       child: const Icon(Icons.edit_note_outlined),
                     ),
@@ -184,7 +187,7 @@ class _WalletViewState extends State<WalletView> {
     });
   }
 
-  void editBalance(Balance_Provider balanceData) => showDialog(
+  void editBalance(Balance_Provider balanceData, String authToken) => showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(

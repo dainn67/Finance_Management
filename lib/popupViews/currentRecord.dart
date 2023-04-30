@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../data.dart';
+import '../providers/AuthenProvider.dart';
+import '../providers/RecordProvider.dart';
 
 class currentRecordView extends StatefulWidget {
   int index, type, source;
@@ -285,20 +286,7 @@ class _currentRecordViewState extends State<currentRecordView> {
       }
 
       //SEND HTTP REQUEST
-      final uri = Uri.parse('https://phong-s-app-default-rtdb.firebaseio.com/records/${data.records[index].id}.json?$authToken');
-      // final uri = Uri.parse('https://phong-s-app-default-rtdb.firebaseio.com/useronly/$userId/${data.records[index].id}.json?$authToken');
-      //second url is for add favourite only, so it has /useronly/$userId
-      http.patch(uri,
-          body: json.encode({
-            'name': cname.text.isNotEmpty ? cname.text : data.records[widget.index].name,
-            'money': cmoney.text.isNotEmpty ? money : data.records[widget.index].money,
-            'date': _selectedDate.toIso8601String(),
-            'source': source,
-            'type': type,
-            'note': note,
-          }));
-      print('Patch done');
-      data.fetchRecord().then((value) => print('FETCH done after PATCH'));
+      data.patchRecord(index, cname.text, cmoney.text, money, _selectedDate, source, type, note);
 
       cname.clear();
       cmoney.clear();
