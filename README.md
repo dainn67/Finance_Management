@@ -15,4 +15,4 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-The .exe file will be build and push later
+The .apk file along with demos are enclosed in PRODUCT folder
