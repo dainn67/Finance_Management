@@ -2,17 +2,13 @@
 
 An app tracking and calculate the expenses personally or in household
 
-## Getting Started
+The app use Flutter framework to develop UI with Dart language code embedded in
 
-This project is a starting point for Flutter development.
+This project is my first application in Flutter development.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+.apk file along with demos are enclosed in PRODUCT folder. 
+Note that Finance_management_app is develop for Android user only
 
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-
-The .apk file along with demos are enclosed in PRODUCT folder
